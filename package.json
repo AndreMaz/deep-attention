@@ -1,0 +1,24 @@
+{
+  "name": "deep-attention",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AndreMaz/deep-attention.git"
+  },
+  "author": "Andre Mazayev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AndreMaz/deep-attention/issues"
+  },
+  "homepage": "https://github.com/AndreMaz/deep-attention#readme",
+  "dependencies": {
+    "@tensorflow/tfjs": "^1.5.1",
+    "@tensorflow/tfjs-node": "^1.5.1",
+    "@tensorflow/tfjs-node-gpu": "^1.5.1"
+  }
+}
