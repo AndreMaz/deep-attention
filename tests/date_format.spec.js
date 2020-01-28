@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import * as tf from "@tensorflow/tfjs-node";
-import * as dateFormat from "../dataset/date_format";
+const tf = require("@tensorflow/tfjs-node");
+const dateFormat = require("../dataset/date_format");
 
 describe("Date formats", () => {
   it("generateRandomDateTuple", () => {

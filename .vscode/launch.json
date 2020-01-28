@@ -9,12 +9,7 @@
       "request": "launch",
       "name": "Launch Program",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/index.js",
-      "runtimeArgs": ["--nolazy", "--require", "@babel/register"],
-      "sourceMaps": true,
-      "env": {
-        "NODE_ENV": "development"
-      }
+      "program": "${workspaceFolder}/index.js"
     }
   ]
 }

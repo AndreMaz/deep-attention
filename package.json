@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "babel-node index.js",
+    "dev": "node index.js",
     "test": "jest -c jest.config.js --coverage --no-cache"
   },
   "repository": {
@@ -23,14 +23,7 @@
     "@tensorflow/tfjs-node-gpu": "^1.5.1"
   },
   "devDependencies": {
-    "@babel/cli": "*",
-    "@babel/core": "^7.8.3",
-    "@babel/node": "^7.8.3",
-    "@babel/plugin-transform-runtime": "*",
-    "@babel/polyfill": "*",
-    "@babel/preset-env": "^7.8.3",
-    "@babel/runtime": "^7.8.3",
-    "babel-jest": "^25.1.0",
+    "@types/jest": "^25.1.0",
     "jest": "^25.1.0",
     "prettier": "^1.19.1"
   }

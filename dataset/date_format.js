@@ -1,21 +1,4 @@
 /**
- * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-
-/**
  * Date formats and conversion utility functions.
  *
  * This file is used for the training of the date-conversion model and
@@ -27,7 +10,7 @@
  * the dates into one-hot `tf.Tensor` representations.
  */
 
-const tf = require("@tensorflow/tfjs");
+const tf = require("@tensorflow/tfjs-node");
 
 const MONTH_NAMES_FULL = [
   "January",
@@ -50,12 +33,12 @@ const MONTH_NAMES_3LETTER = MONTH_NAMES_FULL.map(name =>
 const MIN_DATE = new Date("1950-01-01").getTime();
 const MAX_DATE = new Date("2050-01-01").getTime();
 
-export const INPUT_LENGTH = 12; // Maximum length of all input formats.
-export const OUTPUT_LENGTH = 10; // Length of 'YYYY-MM-DD'.
+const INPUT_LENGTH = 12; // Maximum length of all input formats.
+const OUTPUT_LENGTH = 10; // Length of 'YYYY-MM-DD'.
 
 // Use "\n" for padding for both input and output. It has to be at the
 // beginning so that `mask_zero=True` can be used in the keras model.
-export const INPUT_VOCAB =
+const INPUT_VOCAB =
   "\n0123456789/-., " +
   MONTH_NAMES_3LETTER.join("")
     .split("")
@@ -67,9 +50,9 @@ export const INPUT_VOCAB =
 // OUTPUT_VOCAB includes an start-of-sequence (SOS) token, represented as
 // '\t'. Note that the date strings are represented in terms of their
 // constituent characters, not words or anything else.
-export const OUTPUT_VOCAB = "\n\t0123456789-";
+const OUTPUT_VOCAB = "\n\t0123456789-";
 
-export const START_CODE = 1;
+const START_CODE = 1;
 
 /**
  * Generate a random date.
@@ -77,7 +60,7 @@ export const START_CODE = 1;
  * @return {[number, number, number]} Year as an integer, month as an
  *   integer >= 1 and <= 12, day as an integer >= 1.
  */
-export function generateRandomDateTuple() {
+function generateRandomDateTuple() {
   const date = new Date(Math.random() * (MAX_DATE - MIN_DATE) + MIN_DATE);
   return [date.getFullYear(), date.getMonth() + 1, date.getDate()];
 }
@@ -87,26 +70,26 @@ function toTwoDigitString(num) {
 }
 
 /** Date format such as 01202019. */
-export function dateTupleToDDMMMYYYY(dateTuple) {
+function dateTupleToDDMMMYYYY(dateTuple) {
   const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${dayStr}${monthStr}${dateTuple[0]}`;
 }
 
 /** Date format such as 01/20/2019. */
-export function dateTupleToMMSlashDDSlashYYYY(dateTuple) {
+function dateTupleToMMSlashDDSlashYYYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${monthStr}/${dayStr}/${dateTuple[0]}`;
 }
 
 /** Date format such as 1/20/2019. */
-export function dateTupleToMSlashDSlashYYYY(dateTuple) {
+function dateTupleToMSlashDSlashYYYY(dateTuple) {
   return `${dateTuple[1]}/${dateTuple[2]}/${dateTuple[0]}`;
 }
 
 /** Date format such as 01/20/19. */
-export function dateTupleToMMSlashDDSlashYY(dateTuple) {
+function dateTupleToMMSlashDDSlashYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   const yearStr = `${dateTuple[0]}`.slice(2);
@@ -114,13 +97,13 @@ export function dateTupleToMMSlashDDSlashYY(dateTuple) {
 }
 
 /** Date format such as 1/20/19. */
-export function dateTupleToMSlashDSlashYY(dateTuple) {
+function dateTupleToMSlashDSlashYY(dateTuple) {
   const yearStr = `${dateTuple[0]}`.slice(2);
   return `${dateTuple[1]}/${dateTuple[2]}/${yearStr}`;
 }
 
 /** Date format such as 012019. */
-export function dateTupleToMMDDYY(dateTuple) {
+function dateTupleToMMDDYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   const yearStr = `${dateTuple[0]}`.slice(2);
@@ -128,7 +111,7 @@ export function dateTupleToMMDDYY(dateTuple) {
 }
 
 /** Date format such as JAN 20 19. */
-export function dateTupleToMMMSpaceDDSpaceYY(dateTuple) {
+function dateTupleToMMMSpaceDDSpaceYY(dateTuple) {
   const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
   const dayStr = toTwoDigitString(dateTuple[2]);
   const yearStr = `${dateTuple[0]}`.slice(2);
@@ -136,14 +119,14 @@ export function dateTupleToMMMSpaceDDSpaceYY(dateTuple) {
 }
 
 /** Date format such as JAN 20 2019. */
-export function dateTupleToMMMSpaceDDSpaceYYYY(dateTuple) {
+function dateTupleToMMMSpaceDDSpaceYYYY(dateTuple) {
   const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${monthStr} ${dayStr} ${dateTuple[0]}`;
 }
 
 /** Date format such as JAN 20, 19. */
-export function dateTupleToMMMSpaceDDCommaSpaceYY(dateTuple) {
+function dateTupleToMMMSpaceDDCommaSpaceYY(dateTuple) {
   const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
   const dayStr = toTwoDigitString(dateTuple[2]);
   const yearStr = `${dateTuple[0]}`.slice(2);
@@ -151,62 +134,62 @@ export function dateTupleToMMMSpaceDDCommaSpaceYY(dateTuple) {
 }
 
 /** Date format such as JAN 20, 2019. */
-export function dateTupleToMMMSpaceDDCommaSpaceYYYY(dateTuple) {
+function dateTupleToMMMSpaceDDCommaSpaceYYYY(dateTuple) {
   const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${monthStr} ${dayStr}, ${dateTuple[0]}`;
 }
 
 /** Date format such as 20-01-2019. */
-export function dateTupleToDDDashMMDashYYYY(dateTuple) {
+function dateTupleToDDDashMMDashYYYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${dayStr}-${monthStr}-${dateTuple[0]}`;
 }
 
 /** Date format such as 20-1-2019. */
-export function dateTupleToDDashMDashYYYY(dateTuple) {
+function dateTupleToDDashMDashYYYY(dateTuple) {
   return `${dateTuple[2]}-${dateTuple[1]}-${dateTuple[0]}`;
 }
 
 /** Date format such as 20.01.2019. */
-export function dateTupleToDDDotMMDotYYYY(dateTuple) {
+function dateTupleToDDDotMMDotYYYY(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${dayStr}.${monthStr}.${dateTuple[0]}`;
 }
 
 /** Date format such as 20.1.2019. */
-export function dateTupleToDDotMDotYYYY(dateTuple) {
+function dateTupleToDDotMDotYYYY(dateTuple) {
   return `${dateTuple[2]}.${dateTuple[1]}.${dateTuple[0]}`;
 }
 
 /** Date format such as 2019.01.20. */
-export function dateTupleToYYYYDotMMDotDD(dateTuple) {
+function dateTupleToYYYYDotMMDotDD(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${dateTuple[0]}.${monthStr}.${dayStr}`;
 }
 
 /** Date format such as 2019.1.20. */
-export function dateTupleToYYYYDotMDotD(dateTuple) {
+function dateTupleToYYYYDotMDotD(dateTuple) {
   return `${dateTuple[0]}.${dateTuple[1]}.${dateTuple[2]}`;
 }
 
 /** Date format such as 20190120. */
-export function dateTupleToYYYYMMDD(dateTuple) {
+function dateTupleToYYYYMMDD(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${dateTuple[0]}${monthStr}${dayStr}`;
 }
 
 /** Date format such as 2019-1-20. */
-export function dateTupleToYYYYDashMDashD(dateTuple) {
+function dateTupleToYYYYDashMDashD(dateTuple) {
   return `${dateTuple[0]}-${dateTuple[1]}-${dateTuple[2]}`;
 }
 
 /** Date format such as 20 JAN 2019. */
-export function dateTupleToDSpaceMMMSpaceYYYY(dateTuple) {
+function dateTupleToDSpaceMMMSpaceYYYY(dateTuple) {
   const monthStr = MONTH_NAMES_3LETTER[dateTuple[1] - 1];
   return `${dateTuple[2]} ${monthStr} ${dateTuple[0]}`;
 }
@@ -215,13 +198,13 @@ export function dateTupleToDSpaceMMMSpaceYYYY(dateTuple) {
  * Date format such as 2019-01-20
  * (i.e.,  the ISO format and the conversion target).
  * */
-export function dateTupleToYYYYDashMMDashDD(dateTuple) {
+function dateTupleToYYYYDashMMDashDD(dateTuple) {
   const monthStr = toTwoDigitString(dateTuple[1]);
   const dayStr = toTwoDigitString(dateTuple[2]);
   return `${dateTuple[0]}-${monthStr}-${dayStr}`;
 }
 
-export const INPUT_FNS = [
+const INPUT_FNS = [
   dateTupleToDDMMMYYYY,
   dateTupleToMMDDYY,
   dateTupleToMMSlashDDSlashYY,
@@ -258,7 +241,7 @@ export const INPUT_FNS = [
  *   `float32` and shape `[numExamples, maxInputLength]`, where `maxInputLength`
  *   is the maximum possible input length of all valid input date-string formats.
  */
-export function encodeInputDateStrings(dateStrings) {
+function encodeInputDateStrings(dateStrings) {
   const n = dateStrings.length;
   const x = tf.buffer([n, INPUT_LENGTH], "float32");
   for (let i = 0; i < n; ++i) {
@@ -287,7 +270,7 @@ export function encodeInputDateStrings(dateStrings) {
  *   dtype `int32` and shape `[numExamples, outputLength]`, where `outputLength`
  *   is the length of the standard output format (i.e., `10`).
  */
-export function encodeOutputDateStrings(dateStrings, oneHot = false) {
+function encodeOutputDateStrings(dateStrings, oneHot = false) {
   const n = dateStrings.length;
   const x = tf.buffer([n, OUTPUT_LENGTH], "int32");
   for (let i = 0; i < n; ++i) {
@@ -306,3 +289,36 @@ export function encodeOutputDateStrings(dateStrings, oneHot = false) {
   }
   return x.toTensor();
 }
+
+module.exports = {
+  INPUT_LENGTH,
+  OUTPUT_LENGTH,
+  INPUT_VOCAB,
+  OUTPUT_VOCAB,
+  START_CODE,
+  generateRandomDateTuple,
+  toTwoDigitString,
+  dateTupleToDDMMMYYYY,
+  dateTupleToMMSlashDDSlashYYYY,
+  dateTupleToMSlashDSlashYYYY,
+  dateTupleToMMSlashDDSlashYY,
+  dateTupleToMSlashDSlashYY,
+  dateTupleToMMDDYY,
+  dateTupleToMMMSpaceDDSpaceYY,
+  dateTupleToMMMSpaceDDSpaceYYYY,
+  dateTupleToMMMSpaceDDCommaSpaceYY,
+  dateTupleToMMMSpaceDDCommaSpaceYYYY,
+  dateTupleToDDDashMMDashYYYY,
+  dateTupleToDDashMDashYYYY,
+  dateTupleToDDDotMMDotYYYY,
+  dateTupleToDDotMDotYYYY,
+  dateTupleToYYYYDotMMDotDD,
+  dateTupleToYYYYDotMDotD,
+  dateTupleToYYYYMMDD,
+  dateTupleToYYYYDashMDashD,
+  dateTupleToDSpaceMMMSpaceYYYY,
+  dateTupleToYYYYDashMMDashDD,
+  INPUT_FNS,
+  encodeInputDateStrings,
+  encodeOutputDateStrings
+};

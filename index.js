@@ -1,5 +1,5 @@
-import * as tf from "@tensorflow/tfjs-node";
-import { generateDataSet } from "./dataset/generator";
+const tf = require("@tensorflow/tfjs-node");
+const { generateDataSet } = require("./dataset/generator");
 
 const configs = {
   dataset: {

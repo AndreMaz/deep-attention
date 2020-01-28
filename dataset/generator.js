@@ -1,5 +1,5 @@
-import * as tf from "@tensorflow/tfjs";
-import * as dateFormat from "./date_format";
+const tf = require("@tensorflow/tfjs-node");
+const dateFormat = require("./date_format");
 
 /**
  * Generates the dataset for training, validation and testing
@@ -10,7 +10,7 @@ import * as dateFormat from "./date_format";
  * @param {number} configs.trainSplit Percentage of data used for training
  * @param {number} configs.valSplit Percentage of data used for validation
  */
-export function generateDataSet(configs) {
+function generateDataSet(configs) {
   // Generate ordered data sets
   const dateTuples = generateOrderedDates(configs.minYear, configs.maxYear);
 
@@ -131,3 +131,5 @@ function dateTuplesToTensor(dateTuples) {
     return { encoderInput, decoderInput, decoderOutput };
   });
 }
+
+module.exports = { generateDataSet };
