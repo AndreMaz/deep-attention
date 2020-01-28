@@ -2,6 +2,7 @@ import * as tf from "@tensorflow/tfjs";
 import * as dateFormat from "./date_format";
 
 /**
+ * Generates the dataset for training, validation and testing
  *
  * @param {object} configs
  * @param {number} configs.minYear Start Year that will be used to generate the dataset
