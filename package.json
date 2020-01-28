@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "babel-node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest -c jest.config.js --coverage --no-cache"
   },
   "repository": {
     "type": "git",
@@ -23,21 +23,15 @@
     "@tensorflow/tfjs-node-gpu": "^1.5.1"
   },
   "devDependencies": {
+    "@babel/cli": "*",
     "@babel/core": "^7.8.3",
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "~1.7.0",
+    "@babel/node": "^7.8.3",
+    "@babel/plugin-transform-runtime": "*",
+    "@babel/polyfill": "*",
+    "@babel/preset-env": "^7.8.3",
+    "@babel/runtime": "^7.8.3",
     "babel-jest": "^25.1.0",
-    "jest": "^25.1.0"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.[t|j]sx?$": "babel-jest"
-    },
-    "testMatch": [
-      "**/*.spec.(ts|js)"
-    ]
+    "jest": "^25.1.0",
+    "prettier": "^1.19.1"
   }
 }

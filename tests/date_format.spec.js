@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from "@tensorflow/tfjs";
+import * as tf from "@tensorflow/tfjs-node";
 import * as dateFormat from "../dataset/date_format";
 
 describe("Date formats", () => {

@@ -1,13 +1,13 @@
 {
   "presets": [
     [
-      "env",
+      "@babel/preset-env",
       {
         "targets": {
-          "browsers": ["> 3%"]
+          "node": "current"
         }
       }
     ]
   ],
-  "plugins": ["transform-runtime"]
+  "plugins": ["@babel/transform-runtime"]
 }
