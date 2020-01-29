@@ -230,28 +230,32 @@ const INPUT_FNS = [
 /**
  * Encode a number of input date strings as a `tf.Tensor`.
  *
- * The encoding is a sequence of one-hot vectors. The sequence is
- * padded at the end to the maximum possible length of any valid
+ * The encoding is a sequence of integer indices. Each char in dictionary is represented by a number.
+ * The sequence is padded at the end to the maximum possible length of any valid
  * input date strings. The padding value is zero.
  *
  * @param {string[]} dateStrings Input date strings. Each element of the array
  *   must be one of the formats listed above. It is okay to mix multiple formats
  *   in the array.
- * @returns {tf.Tensor} One-hot encoded characters as a `tf.Tensor`, of dtype
+ * @returns {tf.Tensor} Encoded characters as a `tf.Tensor`, of dtype
  *   `float32` and shape `[numExamples, maxInputLength]`, where `maxInputLength`
  *   is the maximum possible input length of all valid input date-string formats.
  */
 function encodeInputDateStrings(dateStrings) {
   const n = dateStrings.length;
+  // By default tf.buffer sets all values to zeros
   const x = tf.buffer([n, INPUT_LENGTH], "float32");
+
   for (let i = 0; i < n; ++i) {
     for (let j = 0; j < INPUT_LENGTH; ++j) {
       if (j < dateStrings[i].length) {
         const char = dateStrings[i][j];
+        // Get char's index number
         const index = INPUT_VOCAB.indexOf(char);
         if (index === -1) {
           throw new Error(`Unknown char: ${char}`);
         }
+        // Set char index in the encoding
         x.set(index, i, j);
       }
     }
@@ -272,6 +276,7 @@ function encodeInputDateStrings(dateStrings) {
  */
 function encodeOutputDateStrings(dateStrings, oneHot = false) {
   const n = dateStrings.length;
+  // By default tf.buffer sets all values to zeros
   const x = tf.buffer([n, OUTPUT_LENGTH], "int32");
   for (let i = 0; i < n; ++i) {
     tf.util.assert(

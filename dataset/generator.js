@@ -99,10 +99,11 @@ function dateTuplesToTensor(dateTuples) {
     inputs.forEach(inputs => inputStrings.push(...inputs));
 
     const encoderInput = dateFormat.encodeInputDateStrings(inputStrings);
+
+    // DECODER INPUT //
     const trainTargetStrings = dateTuples.map(tuple =>
       dateFormat.dateTupleToYYYYDashMMDashDD(tuple)
     );
-
     let decoderInput = dateFormat
       .encodeOutputDateStrings(trainTargetStrings)
       .asType("float32");
@@ -113,15 +114,24 @@ function dateTuplesToTensor(dateTuples) {
     decoderInput = tf
       .concat(
         [
-          tf.ones([decoderInput.shape[0], 1]).mul(dateFormat.START_CODE),
+          tf
+            // Creates tensor with all elems set to one
+            .ones([decoderInput.shape[0], 1])
+            // Element-wise multiplication A * B
+            .mul(dateFormat.START_CODE),
+
+          // Removes last column from the encoding
           decoderInput.slice(
-            [0, 0],
-            [decoderInput.shape[0], decoderInput.shape[1] - 1]
+            [0, 0], // Start position
+            [decoderInput.shape[0], decoderInput.shape[1] - 1] // size of a slice
           )
         ],
         1
       )
+      // Construct a tensor by repeating it the number of times given by reps.
       .tile([dateFormat.INPUT_FNS.length, 1]);
+
+    // DECODER OUTPUT //
     const decoderOutput = tf
       .oneHot(
         dateFormat.encodeOutputDateStrings(trainTargetStrings),
