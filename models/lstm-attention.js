@@ -1,3 +1,7 @@
+/**
+ * More info: https://medium.com/datadriveninvestor/attention-in-rnns-321fbcd64f05
+ */
+
 const tf = require("@tensorflow/tfjs-node");
 const dateFormat = require("../dataset/date_format");
 
