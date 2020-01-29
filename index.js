@@ -18,6 +18,42 @@ const configs = {
   }
 };
 
+function printShapes(opts) {
+  const {
+    trainEncoderInput,
+    trainDecoderInput,
+    trainDecoderOutput,
+    valEncoderInput,
+    valDecoderInput,
+    valDecoderOutput,
+    testDateTuples
+  } = opts;
+
+  console.log(`trainEncoderInput Shape`);
+  console.log(trainEncoderInput.shape);
+  console.log(`_______________________`);
+
+  console.log(`trainDecoderInput Shape`);
+  console.log(trainDecoderInput.shape);
+  console.log(`_______________________`);
+
+  console.log(`trainDecoderOutput Shape`);
+  console.log(trainDecoderOutput.shape);
+  console.log(`_______________________`);
+
+  console.log(`valEncoderInput Shape`);
+  console.log(valEncoderInput.shape);
+  console.log(`_______________________`);
+
+  console.log(`valDecoderInput Shape`);
+  console.log(valDecoderInput.shape);
+  console.log(`_______________________`);
+
+  console.log(`valDecoderOutput Shape`);
+  console.log(valDecoderOutput.shape);
+  console.log(`_______________________`);
+}
+
 async function main() {
   const {
     trainEncoderInput,
@@ -28,6 +64,16 @@ async function main() {
     valDecoderOutput,
     testDateTuples
   } = generateDataSet(configs.dataset);
+
+  printShapes({
+    trainEncoderInput,
+    trainDecoderInput,
+    trainDecoderOutput,
+    valEncoderInput,
+    valDecoderInput,
+    valDecoderOutput,
+    testDateTuples
+  });
 
   const model = createModel(
     dateFormat.INPUT_VOCAB.length,

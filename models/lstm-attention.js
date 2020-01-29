@@ -1,54 +1,7 @@
-/**
- * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-
-// import * as tf from "@tensorflow/tfjs";
-// import * as dateFormat from "./date_format";
 const tf = require("@tensorflow/tfjs-node");
 const dateFormat = require("../dataset/date_format");
 
-/**
- * A custom layer used to obtain the last time step of an RNN sequential
- * output.
- */
-class GetLastTimestepLayer extends tf.layers.Layer {
-  constructor(config) {
-    super(config || {});
-    this.supportMasking = true;
-  }
-
-  computeOutputShape(inputShape) {
-    const outputShape = inputShape.slice();
-    outputShape.splice(outputShape.length - 2, 1);
-    return outputShape;
-  }
-
-  call(input) {
-    if (Array.isArray(input)) {
-      input = input[0];
-    }
-    const inputRank = input.shape.length;
-    tf.util.assert(inputRank === 3, `Invalid input rank: ${inputRank}`);
-    return input.gather([input.shape[1] - 1], 1).squeeze([1]);
-  }
-
-  static get className() {
-    return "GetLastTimestepLayer";
-  }
-}
+const GetLastTimestepLayer = require("./last-time-step-layer");
 tf.serialization.registerClass(GetLastTimestepLayer);
 
 /**
