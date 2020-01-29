@@ -117,6 +117,7 @@ let output = tf.layers
     layer: tf.layers.dense({ units: outputVocabSize, activation: "softmax" })
   })
   .apply(timeDistributedOutput);
-console.log(`Shape of timeDistributed`);
-console.log(timeDistributedOutput.shape);
-timeDistributedOutput.print();
+
+console.log(`Shape of output`);
+console.log(output.shape);
+output.print();
