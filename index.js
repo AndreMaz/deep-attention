@@ -55,6 +55,7 @@ function printShapes(opts) {
 }
 
 async function main() {
+  // Generate datasets
   const {
     trainEncoderInput,
     trainDecoderInput,
@@ -83,12 +84,31 @@ async function main() {
   );
   model.summary();
 
+  // Train the model
   await model.fit([trainEncoderInput, trainDecoderInput], trainDecoderOutput, {
     epochs: configs.args.epochs,
     batchSize: configs.args.batchSize,
     shuffle: true,
     validationData: [[valEncoderInput, valDecoderInput], valDecoderOutput]
   });
+
+  // Run seq2seq inference tests and print the results to console.
+  const numTests = 10;
+  for (let n = 0; n < numTests; ++n) {
+    for (const testInputFn of dateFormat.INPUT_FNS) {
+      const inputStr = testInputFn(testDateTuples[n]);
+      console.log("\n-----------------------");
+      console.log(`Input string: ${inputStr}`);
+      const correctAnswer = dateFormat.dateTupleToYYYYDashMMDashDD(
+        testDateTuples[n]
+      );
+      console.log(`Correct answer: ${correctAnswer}`);
+
+      const { outputStr } = await runSeq2SeqInference(model, inputStr);
+      const isCorrect = outputStr === correctAnswer;
+      console.log(`Model output: ${outputStr} (${isCorrect ? "OK" : "WRONG"})`);
+    }
+  }
 }
 
 main();
