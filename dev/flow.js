@@ -9,7 +9,7 @@ const lstmUnits = 5;
 const inputLength = 3;
 
 // ENCODER //
-const encodeEmbeddingInput = tf.tensor2d([0, 1, 1], [1, 3]);
+const encodeEmbeddingInput = tf.tensor2d([1, 1, 1], [1, 3]);
 encodeEmbeddingInput.print();
 
 // Selects rows from embedding by `encoderInput` values
@@ -84,7 +84,6 @@ attentionDot.print();
 let attentionSoftMax = tf.layers
   .activation({ activation: "softmax", name: "attention" })
   .apply(attentionDot);
-
 console.log(`Shape of attentionSoftMax`);
 console.log(attentionSoftMax.shape);
 attentionSoftMax.print();

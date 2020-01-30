@@ -1,5 +1,7 @@
 /**
  * More info: https://medium.com/datadriveninvestor/attention-in-rnns-321fbcd64f05
+ *
+ * More info: https://arxiv.org/abs/1409.0473
  */
 
 const tf = require("@tensorflow/tfjs-node");
