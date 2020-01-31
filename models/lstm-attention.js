@@ -44,20 +44,21 @@ function createModel(
       inputDim: inputVocabSize,
       outputDim: embeddingDims,
       inputLength,
-      maskZero: true
+      maskZero: true,
+      name: "encoderEmbedding"
     })
     .apply(encoderEmbeddingInput);
 
   // Feed the selected embedding vectors to the LSTM
   let encoderLSTMOutput = tf.layers
-    .lstm({ units: lstmUnits, returnSequences: true }) // `returnSequences` returns all the states. Not only the last one
+    .lstm({ units: lstmUnits, returnSequences: true, name: "encoderLSTM" }) // `returnSequences` returns all the states. Not only the last one
     .apply(encoderEmbeddingOutput);
 
   // Slice the `encoderLSTMOutput` to get the last State of encoder's LSTM.
   // It will be used to init the decoder's LSTM
-  const encoderLast = new GetLastTimestepLayer({ name: "encoderLast" }).apply(
-    encoderLSTMOutput
-  );
+  const encoderLast = new GetLastTimestepLayer({
+    name: "encoderLastExtractor"
+  }).apply(encoderLSTMOutput);
 
   /** DECODER */
   const decoderEmbeddingInput = tf.input({ shape: [outputLength] });
@@ -67,13 +68,14 @@ function createModel(
       inputDim: outputVocabSize,
       outputDim: embeddingDims,
       inputLength: outputLength,
-      maskZero: true
+      maskZero: true,
+      name: "decoderEmbedding"
     })
     .apply(decoderEmbeddingInput);
 
   // Feed the selected embedding vectors to the LSTM
   let decoderLSTMOutput = tf.layers
-    .lstm({ units: lstmUnits, returnSequences: true })
+    .lstm({ units: lstmUnits, returnSequences: true, name: "decoderLSMT" })
     .apply(decoderEmbeddingOutput, {
       initialState: [encoderLast, encoderLast]
     });
@@ -81,11 +83,11 @@ function createModel(
   /** ATTENTION */
   // (W1 * e_j + W2 * d_i)
   let attention = tf.layers
-    .dot({ axes: [2, 2] })
+    .dot({ axes: [2, 2], name: "attentionDot" })
     .apply([decoderLSTMOutput, encoderLSTMOutput]);
 
   attention = tf.layers
-    .activation({ activation: "softmax", name: "attention" })
+    .activation({ activation: "softmax", name: "attentionSoftMax" })
     .apply(attention);
 
   // Apply "attention" on each output state of encoder LSTM
@@ -94,15 +96,21 @@ function createModel(
     .apply([attention, encoderLSTMOutput]);
 
   const decoderCombinedContext = tf.layers
-    .concatenate()
+    .concatenate({ name: "combinedContext" })
     .apply([context, decoderLSTMOutput]);
 
   // Apply the same "dense" layer over `time` dimension. [samples, -> time <- , width]
+  // The input should be at least 3D, and the dimension of the index `1` will be considered to be the temporal dimension.
+  // https://js.tensorflow.org/api/latest/#layers.timeDistributed
   // Input is [null, 10, 128]
   // Outputs is [null, 10, 64] lstmUnits = 64
   let outputGenerator = tf.layers
     .timeDistributed({
-      layer: tf.layers.dense({ units: lstmUnits, activation: "tanh" }) // Scale all the data between -1 and 1
+      layer: tf.layers.dense({
+        units: lstmUnits,
+        activation: "tanh",
+        name: "timeDistributedTanh"
+      }) // Scale all the data between -1 and 1
     })
     .apply(decoderCombinedContext);
 
@@ -110,7 +118,11 @@ function createModel(
   // Outputs is [null, 10, 13] outputVocabSize = 13
   outputGenerator = tf.layers
     .timeDistributed({
-      layer: tf.layers.dense({ units: outputVocabSize, activation: "softmax" }) // Generate the probability of the output char
+      layer: tf.layers.dense({
+        units: outputVocabSize,
+        activation: "softmax",
+        name: "timeDistributedSoftmax"
+      }) // Generate the probability of the output char
     })
     .apply(outputGenerator);
 
