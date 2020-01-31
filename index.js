@@ -1,4 +1,6 @@
 require("@tensorflow/tfjs-node");
+const shelljs = require("shelljs");
+const fs = require("fs");
 const { generateDataSet } = require("./dataset/generator");
 const { runSeq2SeqInference, createModel } = require("./models/lstm-attention");
 const dateFormat = require("./dataset/date_format");
@@ -14,7 +16,8 @@ const configs = {
   },
   args: {
     epochs: 2,
-    batchSize: 128
+    batchSize: 128,
+    savePath: "./out/model"
   }
 };
 
@@ -91,6 +94,16 @@ async function main() {
     shuffle: true,
     validationData: [[valEncoderInput, valDecoderInput], valDecoderOutput]
   });
+
+  // Save the model.
+  if (configs.args.savePath != null && configs.args.savePath.length) {
+    if (!fs.existsSync(configs.args.savePath)) {
+      shelljs.mkdir("-p", configs.args.savePath);
+    }
+    const saveURL = `file://${configs.args.savePath}`;
+    await model.save(saveURL);
+    console.log(`Saved model to ${saveURL}`);
+  }
 
   // Run seq2seq inference tests and print the results to console.
   const numTests = 10;

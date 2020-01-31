@@ -20,7 +20,8 @@
   "dependencies": {
     "@tensorflow/tfjs": "^1.5.2",
     "@tensorflow/tfjs-node": "^1.5.2",
-    "@tensorflow/tfjs-node-gpu": "^1.5.2"
+    "@tensorflow/tfjs-node-gpu": "^1.5.2",
+    "shelljs": "^0.8.3"
   },
   "devDependencies": {
     "@types/jest": "^25.1.1",
