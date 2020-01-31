@@ -19,8 +19,8 @@
   "homepage": "https://github.com/AndreMaz/deep-attention#readme",
   "dependencies": {
     "@tensorflow/tfjs": "^1.5.2",
-    "@tensorflow/tfjs-node": "^1.5.1",
-    "@tensorflow/tfjs-node-gpu": "^1.5.1"
+    "@tensorflow/tfjs-node": "^1.5.2",
+    "@tensorflow/tfjs-node-gpu": "^1.5.2"
   },
   "devDependencies": {
     "@types/jest": "^25.1.1",

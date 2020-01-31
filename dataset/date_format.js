@@ -10,7 +10,7 @@
  * the dates into one-hot `tf.Tensor` representations.
  */
 
-const tf = require("@tensorflow/tfjs-node");
+const tf = require("@tensorflow/tfjs");
 
 const MONTH_NAMES_FULL = [
   "January",

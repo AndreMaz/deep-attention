@@ -1,4 +1,4 @@
-const tf = require("@tensorflow/tfjs-node");
+const tf = require("@tensorflow/tfjs");
 
 /**
  * A custom layer used to obtain the last time step of an RNN sequential

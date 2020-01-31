@@ -1,3 +1,4 @@
+require("@tensorflow/tfjs-node");
 const dateFormat = require("../dataset/date_format");
 const { generateDataSet } = require("../dataset/generator");
 

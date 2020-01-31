@@ -4,7 +4,7 @@
  * More info: https://arxiv.org/abs/1409.0473
  */
 
-const tf = require("@tensorflow/tfjs-node");
+const tf = require("@tensorflow/tfjs");
 const dateFormat = require("../dataset/date_format");
 
 const GetLastTimestepLayer = require("./last-time-step-layer");
@@ -36,53 +36,64 @@ function createModel(
   const lstmUnits = 64;
 
   /** ENCODER */
-  const encoderInput = tf.input({ shape: [inputLength] });
+  const encoderEmbeddingInput = tf.input({ shape: [inputLength] });
 
-  let encoder = tf.layers
+  // Select the embedding vectors by providing the `encoderEmbeddingInput` with the indices
+  let encoderEmbeddingOutput = tf.layers
     .embedding({
       inputDim: inputVocabSize,
       outputDim: embeddingDims,
       inputLength,
       maskZero: true
     })
-    .apply(encoderInput);
+    .apply(encoderEmbeddingInput);
 
-  encoder = tf.layers
-    .lstm({ units: lstmUnits, returnSequences: true })
-    .apply(encoder);
+  // Feed the selected embedding vectors to the LSTM
+  let encoderLSTMOutput = tf.layers
+    .lstm({ units: lstmUnits, returnSequences: true }) // `returnSequences` returns all the states. Not only the last one
+    .apply(encoderEmbeddingOutput);
 
+  // Slice the `encoderLSTMOutput` to get the last State of encoder's LSTM.
+  // It will be used to init the decoder's LSTM
   const encoderLast = new GetLastTimestepLayer({ name: "encoderLast" }).apply(
-    encoder
+    encoderLSTMOutput
   );
 
   /** DECODER */
-  const decoderInput = tf.input({ shape: [outputLength] });
-  let decoder = tf.layers
+  const decoderEmbeddingInput = tf.input({ shape: [outputLength] });
+  // Select the embedding vectors by providing the `decoderEmbeddingInput` with the indices
+  let decoderEmbeddingOutput = tf.layers
     .embedding({
       inputDim: outputVocabSize,
       outputDim: embeddingDims,
       inputLength: outputLength,
       maskZero: true
     })
-    .apply(decoderInput);
+    .apply(decoderEmbeddingInput);
 
-  decoder = tf.layers
+  // Feed the selected embedding vectors to the LSTM
+  let decoderLSTMOutput = tf.layers
     .lstm({ units: lstmUnits, returnSequences: true })
-    .apply(decoder, { initialState: [encoderLast, encoderLast] });
+    .apply(decoderEmbeddingOutput, {
+      initialState: [encoderLast, encoderLast]
+    });
 
   /** ATTENTION */
-  let attention = tf.layers.dot({ axes: [2, 2] }).apply([decoder, encoder]);
+  let attention = tf.layers
+    .dot({ axes: [2, 2] })
+    .apply([decoderLSTMOutput, encoderLSTMOutput]);
+
   attention = tf.layers
     .activation({ activation: "softmax", name: "attention" })
     .apply(attention);
 
   const context = tf.layers
     .dot({ axes: [2, 1], name: "context" })
-    .apply([attention, encoder]);
+    .apply([attention, encoderLSTMOutput]);
 
   const decoderCombinedContext = tf.layers
     .concatenate()
-    .apply([context, decoder]);
+    .apply([context, decoderLSTMOutput]);
 
   let output = tf.layers
     .timeDistributed({
@@ -97,7 +108,7 @@ function createModel(
     .apply(output);
 
   const model = tf.model({
-    inputs: [encoderInput, decoderInput],
+    inputs: [encoderEmbeddingInput, decoderEmbeddingInput],
     outputs: output
   });
 
