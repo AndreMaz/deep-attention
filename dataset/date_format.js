@@ -277,7 +277,7 @@ function encodeInputDateStrings(dateStrings) {
 function encodeOutputDateStrings(dateStrings, oneHot = false) {
   const n = dateStrings.length;
   // By default tf.buffer sets all values to zeros
-  const x = tf.buffer([n, OUTPUT_LENGTH], "int32");
+  const x = tf.buffer([n, OUTPUT_LENGTH], "int32"); // 'int32' for one hot encoding
   for (let i = 0; i < n; ++i) {
     tf.util.assert(
       dateStrings[i].length === OUTPUT_LENGTH,

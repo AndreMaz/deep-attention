@@ -1,15 +1,37 @@
+/**
+ * Single passage over all layers with an actual date
+ */
+
 const tf = require("@tensorflow/tfjs-node");
+const dateFormat = require("../dataset/date_format");
 
 const GetLastTimestepLayer = require("../models/last-time-step-layer");
 tf.serialization.registerClass(GetLastTimestepLayer);
 
-const inputVocabSize = 5;
-const embeddingDims = 5;
-const lstmUnits = 5;
-const inputLength = 3;
+const embeddingDims = 64;
+const lstmUnits = 64;
+
+const inputVocabSize = 35;
+const inputLength = 12;
+
+const outputVocabSize = 13;
+const outputLength = 10;
+
+// Original Date = [2019, 10, 1];
+
+// Input Date
+const dateAsString = "01.10.2019";
+// Input date converted to an array of indices
+// [[1, 2, 13, 2, 1, 13, 3, 1, 2, 10, 0, 0],]
+const encodeEmbeddingInput = dateFormat.encodeInputDateStrings([dateAsString]);
+
+// Output date
+const dateAsOut = "2019-10-01";
+// Output date converted to an array of indices
+// [[4, 2, 3, 11, 12, 3, 2, 12, 2, 3],]
+let decodeEmbeddingInput = dateFormat.encodeOutputDateStrings([dateAsOut]);
 
 // ENCODER //
-const encodeEmbeddingInput = tf.tensor2d([1, 1, 1], [1, 3]);
 encodeEmbeddingInput.print();
 
 // Selects rows from embedding by `encoderInput` values
@@ -44,11 +66,7 @@ console.log(encoderLast.shape);
 encoderLast.print();
 
 // DECODER //
-const decodeEmbeddingInput = tf.tensor2d([1, 2, 2], [1, 3]);
 decodeEmbeddingInput.print();
-
-const outputVocabSize = 4;
-const outputLength = 3;
 
 let decoderEmbeddingOutput = tf.layers
   .embedding({
