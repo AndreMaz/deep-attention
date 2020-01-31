@@ -1,4 +1,4 @@
-const tf = require("@tensorflow/tfjs-node");
+require("@tensorflow/tfjs-node");
 const { generateDataSet } = require("./dataset/generator");
 const { runSeq2SeqInference, createModel } = require("./models/lstm-attention");
 const dateFormat = require("./dataset/date_format");

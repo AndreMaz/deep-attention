@@ -1,7 +1,7 @@
 /**
- * More info: https://medium.com/datadriveninvestor/attention-in-rnns-321fbcd64f05
- *
  * More info: https://arxiv.org/abs/1409.0473
+ *
+ * More info: https://medium.com/datadriveninvestor/attention-in-rnns-321fbcd64f05
  */
 
 const tf = require("@tensorflow/tfjs");
@@ -79,6 +79,7 @@ function createModel(
     });
 
   /** ATTENTION */
+  // (W1 * e_j + W2 * d_i)
   let attention = tf.layers
     .dot({ axes: [2, 2] })
     .apply([decoderLSTMOutput, encoderLSTMOutput]);
@@ -87,6 +88,7 @@ function createModel(
     .activation({ activation: "softmax", name: "attention" })
     .apply(attention);
 
+  // Apply "attention" on each output state of encoder LSTM
   const context = tf.layers
     .dot({ axes: [2, 1], name: "context" })
     .apply([attention, encoderLSTMOutput]);
@@ -95,21 +97,26 @@ function createModel(
     .concatenate()
     .apply([context, decoderLSTMOutput]);
 
-  let output = tf.layers
+  // Apply the same "dense" layer over `time` dimension. [samples, -> time <- , width]
+  // Input is [null, 10, 128]
+  // Outputs is [null, 10, 64] lstmUnits = 64
+  let outputGenerator = tf.layers
     .timeDistributed({
-      layer: tf.layers.dense({ units: lstmUnits, activation: "tanh" })
+      layer: tf.layers.dense({ units: lstmUnits, activation: "tanh" }) // Scale all the data between -1 and 1
     })
     .apply(decoderCombinedContext);
 
-  output = tf.layers
+  // Input is [null, 10, 64]
+  // Outputs is [null, 10, 13] outputVocabSize = 13
+  outputGenerator = tf.layers
     .timeDistributed({
-      layer: tf.layers.dense({ units: outputVocabSize, activation: "softmax" })
+      layer: tf.layers.dense({ units: outputVocabSize, activation: "softmax" }) // Generate the probability of the output char
     })
-    .apply(output);
+    .apply(outputGenerator);
 
   const model = tf.model({
     inputs: [encoderEmbeddingInput, decoderEmbeddingInput],
-    outputs: output
+    outputs: outputGenerator
   });
 
   model.compile({ loss: "categoricalCrossentropy", optimizer: "adam" });
@@ -141,6 +148,7 @@ async function runSeq2SeqInference(model, inputStr, getAttention = false) {
 
     for (let i = 1; i < dateFormat.OUTPUT_LENGTH; ++i) {
       const predictOut = model.predict([encoderInput, decoderInput.toTensor()]);
+
       const output = predictOut.argMax(2).dataSync()[i - 1];
       predictOut.dispose();
       decoderInput.set(output, 0, i);
@@ -165,6 +173,7 @@ async function runSeq2SeqInference(model, inputStr, getAttention = false) {
       encoderInput,
       decoderInput.toTensor()
     ]);
+
     let decoderFinalOutput; // The decoder's final output.
     if (getAttention) {
       decoderFinalOutput = finalPredictOut[0];
