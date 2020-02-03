@@ -7,6 +7,7 @@ const dateFormat = require("../dataset/date_format");
 
 const GetLastTimestepLayer = require("../models/last-time-step-layer");
 tf.serialization.registerClass(GetLastTimestepLayer);
+const kleur = require("kleur");
 
 const embeddingDims = 64;
 const lstmUnits = 64;
@@ -16,6 +17,36 @@ const inputLength = 12;
 
 const outputVocabSize = 13;
 const outputLength = 10;
+
+console.log(kleur.bgWhite(kleur.black("INPUT VOCABULARY MAPPINGS")));
+console.log(
+  kleur.bgWhite(
+    kleur.black(`Input Vocal Length : ${dateFormat.INPUT_VOCAB.length}`)
+  )
+);
+dateFormat.INPUT_VOCAB.split("").forEach((value, index) => {
+  if (index === 0) {
+    console.log(kleur.bgGreen(kleur.black(`Char "\\n": Index ${index}`)));
+  } else
+    console.log(kleur.bgGreen(kleur.black(`Char "${value}": Index ${index}`)));
+});
+
+console.log(kleur.bgWhite(kleur.black("OUTPUT VOCABULARY MAPPINGS")));
+console.log(
+  kleur.bgWhite(
+    kleur.black(`Input Vocal Length : ${dateFormat.OUTPUT_VOCAB.length}`)
+  )
+);
+dateFormat.OUTPUT_VOCAB.split("").forEach((value, index) => {
+  if (index === 0) {
+    console.log(kleur.bgMagenta(kleur.black(`Char "\\n": Index ${index}`)));
+  } else if (index === 1) {
+    console.log(kleur.bgMagenta(kleur.black(`Char "\\t": Index ${index}`)));
+  } else
+    console.log(
+      kleur.bgMagenta(kleur.black(`Char "${value}": Index ${index}`))
+    );
+});
 
 // Original Date = [2019, 10, 1];
 
@@ -91,7 +122,6 @@ console.log(decoderLTSMOutput.shape);
 decoderLTSMOutput.print();
 
 // ATTENTION //
-
 let attentionDot = tf.layers
   .dot({ axes: [2, 2] })
   .apply([decoderLTSMOutput, encoderLSTMOutput]);
