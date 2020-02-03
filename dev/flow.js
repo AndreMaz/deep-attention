@@ -26,6 +26,7 @@ console.log(
 );
 dateFormat.INPUT_VOCAB.split("").forEach((value, index) => {
   if (index === 0) {
+    // "\n" for padding for both input and output
     console.log(kleur.bgGreen(kleur.black(`Char "\\n": Index ${index}`)));
   } else
     console.log(kleur.bgGreen(kleur.black(`Char "${value}": Index ${index}`)));
@@ -39,8 +40,10 @@ console.log(
 );
 dateFormat.OUTPUT_VOCAB.split("").forEach((value, index) => {
   if (index === 0) {
+    // "\n" for padding for both input and output
     console.log(kleur.bgMagenta(kleur.black(`Char "\\n": Index ${index}`)));
   } else if (index === 1) {
+    // "\t" represents start-of-sequence (SOS) token
     console.log(kleur.bgMagenta(kleur.black(`Char "\\t": Index ${index}`)));
   } else
     console.log(
@@ -49,6 +52,14 @@ dateFormat.OUTPUT_VOCAB.split("").forEach((value, index) => {
 });
 
 // Original Date = [2019, 10, 1];
+console.log("POSSIBLE INPUT FORMATS");
+console.log(`NUMBER OF SUPPORTED DATE FORMATS: ${dateFormat.INPUT_FNS.length}`);
+let inputDate = [[2019, 10, 1]];
+inputDate.forEach(date => {
+  dateFormat.INPUT_FNS.forEach(fn => {
+    console.log(kleur.bgCyan(kleur.black(fn(date))));
+  });
+});
 
 // Input Date
 const dateAsString = "01.10.2019";
@@ -60,7 +71,26 @@ const encodeEmbeddingInput = dateFormat.encodeInputDateStrings([dateAsString]);
 const dateAsOut = "2019-10-01";
 // Output date converted to an array of indices
 // [[4, 2, 3, 11, 12, 3, 2, 12, 2, 3],]
-let decodeEmbeddingInput = dateFormat.encodeOutputDateStrings([dateAsOut]);
+let decodeEmbeddingInput = dateFormat
+  .encodeOutputDateStrings([dateAsOut])
+  .asType("float32");
+// Shift the input
+let shiftedDecodeEmbeddingInput = tf.concat(
+  [
+    tf
+      // Creates tensor with all elems set to one
+      .ones([decodeEmbeddingInput.shape[0], 1])
+      // Element-wise multiplication A * B
+      .mul(dateFormat.START_CODE),
+
+    // Removes last column from the encoding
+    decodeEmbeddingInput.slice(
+      [0, 0], // Start position
+      [decodeEmbeddingInput.shape[0], decodeEmbeddingInput.shape[1] - 1] // size of a slice
+    )
+  ],
+  1
+);
 
 // ENCODER //
 encodeEmbeddingInput.print();
@@ -97,7 +127,10 @@ console.log(encoderLast.shape);
 encoderLast.print();
 
 // DECODER //
+console.log("ORIGINAL DECODER EMBEDDING INPUT");
 decodeEmbeddingInput.print();
+console.log("SHIFTED DECODER EMBEDDING INPUT");
+shiftedDecodeEmbeddingInput.print();
 
 let decoderEmbeddingOutput = tf.layers
   .embedding({
@@ -108,7 +141,7 @@ let decoderEmbeddingOutput = tf.layers
   })
   .apply(decodeEmbeddingInput);
 
-console.log(`Shape of decoderEmbeddingOutput`);
+console.log("Shape of decoderEmbeddingOutput");
 console.log(decoderEmbeddingOutput.shape);
 decoderEmbeddingOutput.print();
 

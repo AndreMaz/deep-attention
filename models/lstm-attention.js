@@ -56,8 +56,8 @@ function createModel(
 
   // Slice the `encoderLSTMOutput` to get the last State of encoder's LSTM.
   // It will be used to init the decoder's LSTM
-  const encoderLast = new GetLastTimestepLayer({
-    name: "encoderLastExtractor"
+  const encoderLastState = new GetLastTimestepLayer({
+    name: "encoderLastStateExtractor"
   }).apply(encoderLSTMOutput);
 
   /** DECODER */
@@ -77,7 +77,7 @@ function createModel(
   let decoderLSTMOutput = tf.layers
     .lstm({ units: lstmUnits, returnSequences: true, name: "decoderLSMT" })
     .apply(decoderEmbeddingOutput, {
-      initialState: [encoderLast, encoderLast]
+      initialState: [encoderLastState, encoderLastState]
     });
 
   /** ATTENTION */
@@ -85,32 +85,37 @@ function createModel(
   let attention = tf.layers
     .dot({ axes: [2, 2], name: "attentionDot" })
     .apply([decoderLSTMOutput, encoderLSTMOutput]);
-
+  // Apply soft max activation to map values into probabilities
+  // This produces the Attention Weights
   attention = tf.layers
     .activation({ activation: "softmax", name: "attentionSoftMax" })
     .apply(attention);
 
-  // Apply "attention" on each output state of encoder LSTM
+  // Apply "Attention Weights" on each output state of encoder LSTM
+  // The result "shows" where (at what part of input) to "focus" on
+  // The result is the Context Vector
   const context = tf.layers
     .dot({ axes: [2, 1], name: "context" })
     .apply([attention, encoderLSTMOutput]);
 
+  // Concatenates the decoder LSTM Output with the Context Vector
   const decoderCombinedContext = tf.layers
     .concatenate({ name: "combinedContext" })
     .apply([context, decoderLSTMOutput]);
 
-  // Apply the same "dense" layer over `time` dimension. [samples, -> time <- , width]
+  // Apply the same "dense" layer over `time` dimension.
   // The input should be at least 3D, and the dimension of the index `1` will be considered to be the temporal dimension.
-  // https://js.tensorflow.org/api/latest/#layers.timeDistributed
-  // Input is [null, 10, 128]
+  // More info: https://js.tensorflow.org/api/latest/#layers.timeDistributed
+  // Input is [null, 10, 128] "null" (sample size) is not considered.
+  // This means that the input shape is [10, 128]. Index `1` is 128. So the timeDistributed will be applied over 128
   // Outputs is [null, 10, 64] lstmUnits = 64
   let outputGenerator = tf.layers
     .timeDistributed({
       layer: tf.layers.dense({
         units: lstmUnits,
-        activation: "tanh",
+        activation: "tanh", // Scale all the data between -1 and 1
         name: "timeDistributedTanh"
-      }) // Scale all the data between -1 and 1
+      })
     })
     .apply(decoderCombinedContext);
 
