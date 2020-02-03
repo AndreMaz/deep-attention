@@ -8,3 +8,9 @@ I've just refactored things (in a way that make more sense to me) while learning
 - I've reorganized the file structure
 - I've dropped the frontend part as I'm only interested in the model
 - I'm using Jest instead of Jasmine
+
+## Running
+
+- `npm run train` - Train the model
+- `npm run test` - Run unit tests
+- `npm run flow` - One execution of the model (with [apply()](https://js.tensorflow.org/api/latest/#tf.layers.Layer.apply)) over an actual input.

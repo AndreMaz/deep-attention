@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node index.js",
+    "flow": "node dev/flow.js",
+    "train": "node index.js",
     "test": "jest -c jest.config.js --coverage --no-cache"
   },
   "repository": {
