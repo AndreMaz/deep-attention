@@ -1,4 +1,4 @@
-require("@tensorflow/tfjs-node");
+const tf = require("@tensorflow/tfjs-node");
 const shelljs = require("shelljs");
 const fs = require("fs");
 const { generateDataSet } = require("./dataset/generator");
