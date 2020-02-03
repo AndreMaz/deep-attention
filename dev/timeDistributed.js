@@ -13,11 +13,11 @@ async function one2one() {
 
   // Reshape
   xInput = xInput.reshape([5, 1, 1]);
-  xInput.print();
+  // xInput.print();
   console.log(xInput.shape);
 
   yExpected = yExpected.reshape([5, 1]);
-  yExpected.print();
+  //  yExpected.print();
   console.log(yExpected.shape);
 
   const length = 5;
@@ -40,8 +40,17 @@ async function one2one() {
   model.compile({ loss: "meanSquaredError", optimizer: "adam" });
 
   await model.fit(xInput, yExpected, {
-    batchSize: numBatch
+    epochs: numEpoch,
+    verbose: 0
   });
+
+  const result = model.predict(
+    tf.tensor3d([0.0, 0.2, 0.4, 0.6, 0.8], [5, 1, 1])
+  );
+  console.log(kleur.bgMagenta(kleur.black(`one2one prediction`)));
+  console.log(result.shape);
+  result.print();
+  console.log(kleur.bgMagenta(kleur.black(`______________________________`)));
 }
 
 one2one()
@@ -55,11 +64,11 @@ async function many2oneNoTimeDistributed() {
 
   // Reshape
   xInput = xInput.reshape([1, 5, 1]);
-  xInput.print();
+  // xInput.print();
   // console.log(xInput.shape);
 
   yExpected = yExpected.reshape([1, 5]);
-  yExpected.print();
+  //  yExpected.print();
   // console.log(yExpected.shape);
 
   const length = 5;
@@ -84,8 +93,19 @@ async function many2oneNoTimeDistributed() {
   model.summary();
 
   await model.fit(xInput, yExpected, {
-    batchSize: numBatch
+    epochs: numEpoch,
+    verbose: 0
   });
+
+  const result = model.predict(
+    tf.tensor3d([0.0, 0.2, 0.4, 0.6, 0.8], [1, 5, 1])
+  );
+  console.log(
+    kleur.bgMagenta(kleur.black(`many2oneNoTimeDistributed prediction`))
+  );
+  console.log(result.shape);
+  result.print();
+  console.log(kleur.bgMagenta(kleur.black(`______________________________`)));
 }
 
 many2oneNoTimeDistributed()
@@ -99,11 +119,11 @@ async function many2oneTimeDistributed() {
 
   // Reshape
   xInput = xInput.reshape([1, 5, 1]);
-  xInput.print();
+  // xInput.print();
   // console.log(xInput.shape);
 
   yExpected = yExpected.reshape([1, 5, 1]);
-  yExpected.print();
+  // yExpected.print();
   // console.log(yExpected.shape);
 
   const length = 5;
@@ -133,8 +153,19 @@ async function many2oneTimeDistributed() {
   model.summary();
 
   await model.fit(xInput, yExpected, {
-    batchSize: numBatch
+    epochs: numEpoch,
+    verbose: 0
   });
+
+  const result = model.predict(
+    tf.tensor3d([0.0, 0.2, 0.4, 0.6, 0.8], [1, 5, 1])
+  );
+  console.log(
+    kleur.bgMagenta(kleur.black(`many2oneTimeDistributed prediction`))
+  );
+  console.log(result.shape);
+  result.print();
+  console.log(kleur.bgMagenta(kleur.black(`______________________________`)));
 }
 
 many2oneTimeDistributed()
@@ -148,11 +179,11 @@ async function many2oneTimeDense() {
 
   // Reshape
   xInput = xInput.reshape([1, 5, 1]);
-  xInput.print();
+  // xInput.print();
   // console.log(xInput.shape);
 
   yExpected = yExpected.reshape([1, 5, 1]);
-  yExpected.print();
+  // yExpected.print();
   // console.log(yExpected.shape);
 
   const length = 5;
@@ -178,8 +209,17 @@ async function many2oneTimeDense() {
   model.summary();
 
   await model.fit(xInput, yExpected, {
-    batchSize: numBatch
+    epochs: numEpoch,
+    verbose: 0
   });
+
+  const result = model.predict(
+    tf.tensor3d([0.0, 0.2, 0.4, 0.6, 0.8], [1, 5, 1])
+  );
+  console.log(kleur.bgMagenta(kleur.black(`many2oneTimeDense prediction`)));
+  console.log(result.shape);
+  result.print();
+  console.log(kleur.bgMagenta(kleur.black(`______________________________`)));
 }
 
 many2oneTimeDense()
