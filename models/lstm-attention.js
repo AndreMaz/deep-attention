@@ -24,7 +24,7 @@ tf.serialization.registerClass(GetLastTimestepLayer);
  * @param {number} inputLength Maximum input length (# of characters). Input
  *   sequences shorter than the length must be padded at the end.
  * @param {number} outputLength Output length (# of characters).
- * @return {tf.Model} A compiled model instance.
+ * @return {tf.LayersModel} A compiled model instance.
  */
 function createModel(
   inputVocabSize,
@@ -86,29 +86,35 @@ function createModel(
     .dot({ axes: [2, 2], name: "attentionDot" })
     .apply([decoderLSTMOutput, encoderLSTMOutput]);
   // Apply soft max activation to map values into probabilities
-  // This produces the Attention Weights
+  // This produces the "Attention Weights"
   attention = tf.layers
     .activation({ activation: "softmax", name: "attentionSoftMax" })
     .apply(attention);
 
   // Apply "Attention Weights" on each output state of encoder LSTM
   // The result "shows" where (at what part of input) to "focus" on
-  // The result is the Context Vector
+  // The result is the "Context Vector"
   const context = tf.layers
     .dot({ axes: [2, 1], name: "context" })
     .apply([attention, encoderLSTMOutput]);
 
-  // Concatenates the decoder LSTM Output with the Context Vector
+  // Concatenates the decoder LSTM Output with the "Context Vector"
+  // Context shape:           [null, 10, 64]
+  // decoderLSTMOutput shape: [null, 10, 64]
+  // Result                   [null, 10, 128]
   const decoderCombinedContext = tf.layers
     .concatenate({ name: "combinedContext" })
     .apply([context, decoderLSTMOutput]);
 
-  // Apply the same "dense" layer over `time` dimension.
+  // Apply the SAME "dense" layer over `time` dimension.
   // The input should be at least 3D, and the dimension of the index `1` will be considered to be the temporal dimension.
   // More info: https://js.tensorflow.org/api/latest/#layers.timeDistributed
-  // Input is [null, 10, 128] "null" (sample size) is not considered.
+  // Input is [null, 10, 128]. The "null" (sample size) is not considered.
   // This means that the input shape is [10, 128]. Index `1` is 128. So the timeDistributed will be applied over 128
   // Outputs is [null, 10, 64] lstmUnits = 64
+  // More info about time distributed layer: https://medium.com/smileinnovation/how-to-work-with-time-distributed-data-in-a-neural-network-b8b39aa4ce00
+  // Another one: https://machinelearningmastery.com/timedistributed-layer-for-long-short-term-memory-networks-in-python/
+  // And another one: https://github.com/keras-team/keras/issues/1029#issuecomment-158064822
   let outputGenerator = tf.layers
     .timeDistributed({
       layer: tf.layers.dense({
