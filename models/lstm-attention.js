@@ -81,7 +81,9 @@ function createModel(
     });
 
   /** ATTENTION */
-  // (W1 * e_j + W2 * d_i)
+  // This is a dot score
+  // More info: https://arxiv.org/pdf/1508.04025.pdf
+  // (e_j * d_i)
   let attention = tf.layers
     .dot({ axes: [2, 2], name: "attentionDot" })
     .apply([decoderLSTMOutput, encoderLSTMOutput]);
