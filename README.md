@@ -14,3 +14,8 @@ I've just refactored things (in a way that make more sense to me) while learning
 - `npm run train`   - Train the model
 - `npm run test`    - Run unit tests
 - `npm run flow`    - One execution of the model (with [apply()](https://js.tensorflow.org/api/latest/#tf.layers.Layer.apply)) over an actual input.
+
+## Useful Links
+- [Attention Mechanism](https://blog.floydhub.com/attention-mechanism/)
+- [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/pdf/1409.0473.pdf)
+- [Effective Approaches to Attention-based Neural Machine Translation](https://arxiv.org/abs/1508.04025)
