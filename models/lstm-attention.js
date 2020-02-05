@@ -24,13 +24,15 @@ tf.serialization.registerClass(GetLastTimestepLayer);
  * @param {number} inputLength Maximum input length (# of characters). Input
  *   sequences shorter than the length must be padded at the end.
  * @param {number} outputLength Output length (# of characters).
+ * @param {string} alignmentType Type of Luong's alignment score. Can be `dot`, `general` or `concat`.
  * @return {tf.LayersModel} A compiled model instance.
  */
 function createModel(
   inputVocabSize,
   outputVocabSize,
   inputLength,
-  outputLength
+  outputLength,
+  alignmentType = "dot"
 ) {
   const embeddingDims = 64;
   const lstmUnits = 64;
@@ -43,7 +45,7 @@ function createModel(
     .embedding({
       inputDim: inputVocabSize,
       outputDim: embeddingDims,
-      inputLength,
+      inputLength: inputLength,
       maskZero: true,
       name: "encoderEmbedding"
     })
@@ -82,9 +84,49 @@ function createModel(
 
   /** ATTENTION */
   // More info: https://arxiv.org/pdf/1508.04025.pdf
-  let attention = tf.layers
-    .dot({ axes: [2, 2], name: "attentionDot" })
-    .apply([decoderLSTMOutput, encoderLSTMOutput]);
+  let attention;
+  if (alignmentType === "dot") {
+    // Compute hidden_target * hidden_source
+    attention = tf.layers
+      .dot({ axes: [2, 2], name: "attentionDot" })
+      .apply([decoderLSTMOutput, encoderLSTMOutput]);
+  } else if (alignmentType === "general") {
+    // Compute W_a * hidden_source
+    let linearActivation = tf.layers
+      .activation({ activation: "linear", name: "linearActivationOnEncoder" })
+      .apply(encoderLSTMOutput);
+    // Compute hidden_target * "linearActivation"
+    attention = tf.layers
+      .dot({ axes: [2, 2], name: "attentionDot" })
+      .apply([decoderLSTMOutput, linearActivation]);
+  } else if (alignmentType === "concat") {
+    // Concat hidden_target and hidden_source
+    let concat = tf.layers
+      .concatenate({ axis: -1, name: "concatHiddenStates" })
+      .apply([decoderLSTMOutput, encoderLSTMOutput]);
+
+    let linearActivation = tf.layers
+      .activation({
+        activation: "linear",
+        name: "linearActivationOnConcat"
+      })
+      .apply(concat);
+
+    let tanhed = tf.layers
+      .activation({
+        activation: "tanh",
+        name: "linearActivationOnConcat"
+      })
+      .apply(linearActivation);
+
+    attention = tf.layers
+      .activation({
+        activation: "linear",
+        name: "linearActivationOnThan"
+      })
+      .apply(tanhed);
+  }
+
   // Apply soft max activation to map values into probabilities
   // This produces the "Attention Weights"
   attention = tf.layers

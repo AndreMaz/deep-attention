@@ -83,7 +83,8 @@ async function main() {
     dateFormat.INPUT_VOCAB.length,
     dateFormat.OUTPUT_VOCAB.length,
     dateFormat.INPUT_LENGTH,
-    dateFormat.OUTPUT_LENGTH
+    dateFormat.OUTPUT_LENGTH,
+    "concat"
   );
   model.summary();
 
