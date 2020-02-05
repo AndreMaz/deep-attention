@@ -99,7 +99,7 @@ function createModel(
   } else if (alignmentType === "general") {
     // Compute W_a * hidden_source
     let linearActivation = tf.layers
-      .activation({ activation: "linear", name: "linearActivationOnEncoder" })
+      .dense({ units: lstmUnits, name: "denseOnEncoder" })
       .apply(encoderLSTMOutput);
     // Compute hidden_target * "linearActivation"
     attention = tf.layers
