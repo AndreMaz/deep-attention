@@ -38,7 +38,10 @@ function createModel(
   const lstmUnits = 64;
 
   /** ENCODER */
-  const encoderEmbeddingInput = tf.input({ shape: [inputLength] });
+  const encoderEmbeddingInput = tf.input({
+    shape: [inputLength],
+    name: "embeddingEncoderInput"
+  });
 
   // Select the embedding vectors by providing the `encoderEmbeddingInput` with the indices
   let encoderEmbeddingOutput = tf.layers
@@ -63,7 +66,10 @@ function createModel(
   }).apply(encoderLSTMOutput);
 
   /** DECODER */
-  const decoderEmbeddingInput = tf.input({ shape: [outputLength] });
+  const decoderEmbeddingInput = tf.input({
+    shape: [outputLength],
+    name: "embeddingDecoderInput"
+  });
   // Select the embedding vectors by providing the `decoderEmbeddingInput` with the indices
   let decoderEmbeddingOutput = tf.layers
     .embedding({
@@ -102,7 +108,7 @@ function createModel(
   } else if (alignmentType === "concat") {
     // Concat hidden_target and hidden_source
     let concat = tf.layers
-      .concatenate({ axis: -1, name: "concatHiddenStates" })
+      .concatenate({ name: "concatHiddenStates" })
       .apply([decoderLSTMOutput, encoderLSTMOutput]);
 
     let linearActivation = tf.layers
