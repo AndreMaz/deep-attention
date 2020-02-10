@@ -16,7 +16,7 @@
       "request": "launch",
       "name": "Debug Dev",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/dev/flow.js"
+      "program": "${workspaceFolder}/dev/bahdanau.js"
     }
   ]
 }
