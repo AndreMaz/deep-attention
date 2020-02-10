@@ -25,10 +25,8 @@ const tmp = require("tmp");
 //import * as dateFormat from "./date_format";
 const dateFormat = require("../dataset/date_format");
 // import { createModel, runSeq2SeqInference } from "./model";
-const {
-  runSeq2SeqInference,
-  createModel
-} = require("../models/lstm-attention");
+const { createModel } = require("../models/luong-attention");
+const { runSeq2SeqInference } = require("../models/inference");
 
 require("@tensorflow/tfjs-node");
 

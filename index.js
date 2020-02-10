@@ -2,7 +2,12 @@ const tf = require("@tensorflow/tfjs-node");
 const shelljs = require("shelljs");
 const fs = require("fs");
 const { generateDataSet } = require("./dataset/generator");
-const { runSeq2SeqInference, createModel } = require("./models/lstm-attention");
+//const { createModel } = require("./models/luong-attention");
+// const { createModel } = require("./models/seq2seq");
+
+const { modelFactory } = require("./models");
+
+const { runSeq2SeqInference } = require("./models/inference");
 const dateFormat = require("./dataset/date_format");
 
 const configs = {
@@ -79,6 +84,7 @@ async function main() {
     testDateTuples
   });
 
+  const createModel = modelFactory("luong");
   const model = createModel(
     dateFormat.INPUT_VOCAB.length,
     dateFormat.OUTPUT_VOCAB.length,
