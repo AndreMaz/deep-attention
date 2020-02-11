@@ -1,6 +1,10 @@
 const tf = require("@tensorflow/tfjs");
 
 /**
+ * @typedef {import('@tensorflow/tfjs').Tensor} Tensor
+ */
+
+/**
  * Bahdanau's Decoder
  */
 class AttentionBahdanau extends tf.layers.Layer {
@@ -18,6 +22,11 @@ class AttentionBahdanau extends tf.layers.Layer {
     return inputShape;
   }
 
+  /**
+   *
+   * @param {*} input
+   * @returns {Tensor[]}
+   */
   call(input) {
     const query = input[0];
     const values = input[1];
@@ -27,7 +36,7 @@ class AttentionBahdanau extends tf.layers.Layer {
 
     // hidden shape == (batch_size, hidden size)
     // hidden_with_time_axis shape == (batch_size, 1, hidden size)
-    // we are doing this to perform addition to calculate the score«
+    // we are doing this to perform addition to calculate the score
     let hidden_with_time_axis = tf.expandDims(query, 1);
 
     console.log(`hidden_with_time_axis Shape ${hidden_with_time_axis.shape}`);
@@ -56,18 +65,13 @@ class AttentionBahdanau extends tf.layers.Layer {
     console.log(`attention_weights Shape ${attentionWeights.shape}`);
     console.log(`values Shape ${values.shape}`);
 
-    //  context_vector shape after sum == (batch_size, hidden_size)
-    // let context_vector = attention_weights * values;
+    // context_vector shape after sum == (batch_size, hidden_size)
+    // context_vector = attention_weights * values;
     // context_vector = tf.reduce_sum(context_vector, (axis = 1));
-    /*
-    let contextVector = tf.prod
-      .pr({ axes: 1 })
-      .apply([attentionWeights, values]);
-    contextVector = tf.sum(contextVector, { axis: 1 });
-    */
+    let contextVector = tf.mul(attentionWeights, values);
+    contextVector = tf.sum(contextVector, 1);
 
-    // return { contextVector, attentionWeights };
-    return 1;
+    return { contextVector, attentionWeights };
   }
 
   static get className() {
@@ -75,4 +79,5 @@ class AttentionBahdanau extends tf.layers.Layer {
   }
 }
 
+tf.serialization.registerClass(AttentionBahdanau);
 module.exports = AttentionBahdanau;

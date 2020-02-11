@@ -2,12 +2,11 @@ const tf = require("@tensorflow/tfjs-node");
 const dateFormat = require("../dataset/date_format");
 
 const DecoderBahdanau = require("../models/bahdanau-attention/decoder");
-tf.serialization.registerClass(DecoderBahdanau);
+
 const GetLastTimestepLayer = require("../models/luong-attention/last-time-step-layer");
 tf.serialization.registerClass(GetLastTimestepLayer);
 
 const AttentionBahdanau = require("../models/bahdanau-attention/attention");
-tf.serialization.registerClass(AttentionBahdanau);
 
 const EncoderBahdanau = require("../models/bahdanau-attention/encoder");
 
@@ -58,10 +57,29 @@ const { output, lastState } = new EncoderBahdanau({
 output.print();
 lastState.print();
 
+/*
 const { contextVector, attentionWeights } = new AttentionBahdanau({
   name: "attention",
   units: 10
 }).apply([lastState, output]);
 
-console.log(contextVector);
-console.log(attentionWeights);
+contextVector.print();
+attentionWeights.print();
+*/
+
+const { x, state, attentionWeights } = new DecoderBahdanau({
+  name: "bahdanau",
+  outputLength,
+  outputVocabSize,
+  embeddingDims,
+  lstmUnits,
+  batchSize
+}).apply([tf.randomUniform([1, 1]), lastState, output]);
+
+console.log(x.shape);
+console.log(state.shape);
+console.log(attentionWeights.shape);
+
+x.print();
+state.print();
+attentionWeights.print();
