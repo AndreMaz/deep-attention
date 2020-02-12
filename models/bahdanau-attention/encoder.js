@@ -1,6 +1,10 @@
 const tf = require("@tensorflow/tfjs");
 
 /**
+ * @typedef {import('@tensorflow/tfjs').Tensor} Tensor
+ */
+
+/**
  * Bahdanau's Decoder
  */
 class EncoderBahdanau extends tf.layers.Layer {
@@ -32,6 +36,9 @@ class EncoderBahdanau extends tf.layers.Layer {
     return [null, this.inputLength, this.lstm];
   }
 
+  /**
+   * @param {Tensor} input Tensor with indices
+   */
   call(input) {
     const encoderOutput = this.embedding.apply(input);
 

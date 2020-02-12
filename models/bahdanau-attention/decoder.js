@@ -2,6 +2,10 @@ const tf = require("@tensorflow/tfjs");
 const AttentionBahdanau = require("./attention");
 
 /**
+ * @typedef {import('@tensorflow/tfjs').Tensor} Tensor
+ */
+
+/**
  * Bahdanau's Decoder
  */
 class DecoderBahdanau extends tf.layers.Layer {
@@ -40,9 +44,16 @@ class DecoderBahdanau extends tf.layers.Layer {
     return inputShape;
   }
 
+  /**
+   * @param {Tensor[]} input
+   * @returns
+   */
   call(input) {
+    /** @type {Tensor} Decoder's Input */
     let x = input[0];
+    /** @type {Tensor} Decoder's Last Hidden State */
     const hidden = input[1];
+    /** @type {Tensor} Encoder's hidden states */
     const enc_output = input[2];
 
     // enc_output shape == (batch_size, max_length, hidden_size)
@@ -53,8 +64,6 @@ class DecoderBahdanau extends tf.layers.Layer {
 
     // x shape after passing through embedding == (batch_size, 1, embedding_dim)
     x = this.embedding.apply(x);
-
-    console.log(x.shape);
 
     // x shape after concatenation == (batch_size, 1, embedding_dim + hidden_size)
     x = tf.concat([tf.expandDims(contextVector, 1), x], -1);
@@ -68,9 +77,9 @@ class DecoderBahdanau extends tf.layers.Layer {
     output = tf.reshape(output, [1, output.shape[2]]);
 
     // output shape == (batch_size, vocab)
-    x = this.fc.apply(output);
+    let pred = this.fc.apply(output);
 
-    return { x, state, attentionWeights };
+    return { pred, state, attentionWeights };
     // return 1;
   }
 

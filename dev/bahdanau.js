@@ -57,7 +57,6 @@ const { output, lastState } = new EncoderBahdanau({
 output.print();
 lastState.print();
 
-/*
 const { contextVector, attentionWeights } = new AttentionBahdanau({
   name: "attention",
   units: 10
@@ -65,8 +64,8 @@ const { contextVector, attentionWeights } = new AttentionBahdanau({
 
 contextVector.print();
 attentionWeights.print();
-*/
 
+/*
 const { x, state, attentionWeights } = new DecoderBahdanau({
   name: "bahdanau",
   outputLength,
@@ -83,3 +82,4 @@ console.log(attentionWeights.shape);
 x.print();
 state.print();
 attentionWeights.print();
+*/

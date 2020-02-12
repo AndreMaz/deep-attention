@@ -23,12 +23,13 @@ class AttentionBahdanau extends tf.layers.Layer {
   }
 
   /**
-   *
-   * @param {*} input
-   * @returns {Tensor[]}
+   * @param {Tensor[]} input 1st element is last hidden state; 2nd element is all encoder's hidden states
+   * @returns Returns Context Vector and the Attention Weights
    */
   call(input) {
+    /** @type {Tensor} Last hidden state */
     const query = input[0];
+    /** @type {Tensor} Encoder's hidden states */
     const values = input[1];
 
     console.log(`Query Shape ${query.shape}`);
