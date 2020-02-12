@@ -2,8 +2,6 @@ const tf = require("@tensorflow/tfjs-node");
 const shelljs = require("shelljs");
 const fs = require("fs");
 const { generateDataSet } = require("./dataset/generator");
-//const { createModel } = require("./models/luong-attention");
-// const { createModel } = require("./models/seq2seq");
 
 const { modelFactory } = require("./models");
 
@@ -26,42 +24,6 @@ const configs = {
   }
 };
 
-function printShapes(opts) {
-  const {
-    trainEncoderInput,
-    trainDecoderInput,
-    trainDecoderOutput,
-    valEncoderInput,
-    valDecoderInput,
-    valDecoderOutput,
-    testDateTuples
-  } = opts;
-
-  console.log(`trainEncoderInput Shape`);
-  console.log(trainEncoderInput.shape);
-  console.log(`_______________________`);
-
-  console.log(`trainDecoderInput Shape`);
-  console.log(trainDecoderInput.shape);
-  console.log(`_______________________`);
-
-  console.log(`trainDecoderOutput Shape`);
-  console.log(trainDecoderOutput.shape);
-  console.log(`_______________________`);
-
-  console.log(`valEncoderInput Shape`);
-  console.log(valEncoderInput.shape);
-  console.log(`_______________________`);
-
-  console.log(`valDecoderInput Shape`);
-  console.log(valDecoderInput.shape);
-  console.log(`_______________________`);
-
-  console.log(`valDecoderOutput Shape`);
-  console.log(valDecoderOutput.shape);
-  console.log(`_______________________`);
-}
-
 async function main() {
   // Generate datasets
   const {
@@ -73,16 +35,6 @@ async function main() {
     valDecoderOutput,
     testDateTuples
   } = generateDataSet(configs.dataset);
-
-  printShapes({
-    trainEncoderInput,
-    trainDecoderInput,
-    trainDecoderOutput,
-    valEncoderInput,
-    valDecoderInput,
-    valDecoderOutput,
-    testDateTuples
-  });
 
   const createModel = modelFactory("luong");
   const model = createModel(

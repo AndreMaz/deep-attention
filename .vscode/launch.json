@@ -7,9 +7,16 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug",
+      "name": "Debug Luong",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/index.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Bahdanau",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/bahdanau.js"
     },
     {
       "type": "node",

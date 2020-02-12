@@ -45,42 +45,56 @@ class DecoderBahdanau extends tf.layers.Layer {
   }
 
   /**
+   * Bahdanau's decoder is fed by :
+   *
+   * LSTM_decoder = FN (y_i, s_(i-1), c_i)
+   *
+   * Target sentence words: y_i
+   * Decoder's hidden state: s_i
+   * Context vector: c_i
+   * Encoder's hidden state: h_i
+   *
+   * Context vector is computed by:
+   *
+   * context = FN(s_(i-1), h_i)
+   *
    * @param {Tensor[]} input
    * @returns
    */
   call(input) {
-    /** @type {Tensor} Decoder's Input */
-    let x = input[0];
-    /** @type {Tensor} Decoder's Last Hidden State */
-    const hidden = input[1];
-    /** @type {Tensor} Encoder's hidden states */
-    const enc_output = input[2];
+    return tf.tidy(() => {
+      /** @type {Tensor} Decoder's Input */
+      let x = input[0];
+      /** @type {Tensor} Decoder's Last Hidden State */
+      const hidden = input[1];
+      /** @type {Tensor} Encoder's hidden states */
+      const enc_output = input[2];
 
-    // enc_output shape == (batch_size, max_length, hidden_size)
-    const { contextVector, attentionWeights } = this.attention.apply([
-      hidden,
-      enc_output
-    ]);
+      // enc_output shape == (batch_size, max_length, hidden_size)
+      const { contextVector, attentionWeights } = this.attention.apply([
+        hidden,
+        enc_output
+      ]);
 
-    // x shape after passing through embedding == (batch_size, 1, embedding_dim)
-    x = this.embedding.apply(x);
+      // x shape after passing through embedding == (batch_size, 1, embedding_dim)
+      x = this.embedding.apply(x);
 
-    // x shape after concatenation == (batch_size, 1, embedding_dim + hidden_size)
-    x = tf.concat([tf.expandDims(contextVector, 1), x], -1);
+      // x shape after concatenation == (batch_size, 1, embedding_dim + hidden_size)
+      x = tf.concat([tf.expandDims(contextVector, 1), x], -1);
 
-    // passing the concatenated vector to the LSTM
-    const lstmOutput = this.LSTM.apply(x);
-    let output = lstmOutput[0];
-    let state = lstmOutput[1];
+      // passing the concatenated vector to the LSTM
+      const lstmOutput = this.LSTM.apply(x);
+      let output = lstmOutput[0];
+      let state = lstmOutput[1];
 
-    // output shape == (batch_size * 1, hidden_size)
-    output = tf.reshape(output, [1, output.shape[2]]);
+      // output shape == (batch_size * 1, hidden_size)
+      output = tf.reshape(output, [1, output.shape[2]]);
 
-    // output shape == (batch_size, vocab)
-    let pred = this.fc.apply(output);
+      // output shape == (batch_size, vocab)
+      let pred = this.fc.apply(output);
 
-    return { pred, state, attentionWeights };
-    // return 1;
+      return { pred, state, attentionWeights };
+    });
   }
 
   static get className() {

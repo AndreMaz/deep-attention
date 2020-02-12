@@ -45,18 +45,23 @@ let shiftedDecodeEmbeddingInput = tf.concat(
 encodeEmbeddingInput.print();
 decodeEmbeddingInput.print();
 
-const { output, lastState } = new EncoderBahdanau({
+let encoder = new EncoderBahdanau({
   name: "EncoderBahdanau",
   inputLength,
   inputVocabSize,
   embeddingDims,
   lstmUnits,
   batchSize
-}).apply([encodeEmbeddingInput]);
+});
+const hidden = encoder.initHiddenState();
+console.log(hidden.shape);
+
+const { output, lastState } = encoder.apply([encodeEmbeddingInput, hidden]);
 
 output.print();
 lastState.print();
 
+/*
 const { contextVector, attentionWeights } = new AttentionBahdanau({
   name: "attention",
   units: 10
@@ -64,6 +69,7 @@ const { contextVector, attentionWeights } = new AttentionBahdanau({
 
 contextVector.print();
 attentionWeights.print();
+*/
 
 /*
 const { x, state, attentionWeights } = new DecoderBahdanau({

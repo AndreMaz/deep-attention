@@ -40,11 +40,24 @@ class EncoderBahdanau extends tf.layers.Layer {
    * @param {Tensor} input Tensor with indices
    */
   call(input) {
-    const encoderOutput = this.embedding.apply(input);
+    return tf.tidy(() => {
+      /** @type {Tensor} Decoder's Input */
+      let y = input[0];
+      /** @type {Tensor} Decoder's Last Hidden State */
+      const hidden = input[1];
 
-    const lstmOutput = this.LSTM.apply(encoderOutput);
+      const encoderOutput = this.embedding.apply(y);
 
-    return { output: lstmOutput[0], lastState: lstmOutput[1] };
+      const lstmOutput = this.LSTM.apply(encoderOutput, {
+        // initialState: [hidden, hidden]
+      });
+
+      return { output: lstmOutput[0], lastState: lstmOutput[1] };
+    });
+  }
+
+  initHiddenState() {
+    return tf.zeros([this.batchSize, this.lstmUnits]);
   }
 
   static get className() {
