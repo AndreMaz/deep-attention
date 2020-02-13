@@ -142,4 +142,4 @@ function dateTuplesToTensor(dateTuples) {
   });
 }
 
-module.exports = { generateDataSet };
+module.exports = { generateOrderedDates, generateDataSet };

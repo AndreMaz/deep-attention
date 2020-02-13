@@ -9,9 +9,6 @@ const tf = require("@tensorflow/tfjs");
  * @typedef {import('@tensorflow/tfjs').Tensor} Tensor
  */
 
-const GetLastTimestepLayer = require("./last-time-step-layer");
-tf.serialization.registerClass(GetLastTimestepLayer);
-
 /**
  * Create an LSTM-based attention model for date conversion.
  *
@@ -37,19 +34,85 @@ function createModel(
   alignmentType = "dot"
 ) {
   const embeddingDims = 64;
-  const lstmUnits = 64;
+  const lstmUnits = 32;
 
+  let Tx = inputLength;
+  let Ty = outputLength;
+  let ns = lstmUnits * 2; //
+  let na = lstmUnits;
+  let humanVocabSize = inputVocabSize;
+  let machineVocabSize = outputVocabSize;
+
+  const { static, postActivationLSTMCell, outputLayer } = initConstLayers(
+    ns,
+    Tx,
+    outputVocabSize
+  );
+
+  let X = tf.input({ shape: [Tx, humanVocabSize] });
+  let s0 = tf.input({ shape: [ns], name: "s0" });
+  let c0 = tf.input({ shape: [ns], name: "c0" });
+  let s = s0;
+  let c = s;
+
+  let outputs = [];
+
+  let a = tf.layers
+    .bidirectional({
+      layer: tf.layers.lstm({
+        units: na,
+        returnSequences: true
+      })
+    })
+    .apply(X);
+
+  for (let t = 0; t < Ty; t++) {
+    let context = oneStepAttention(a, s, static);
+
+    let res = postActivationLSTMCell.apply(context, { initialState: [s, c] });
+    s = res[0];
+    c = res[1];
+
+    let out = outputLayer.apply(s);
+
+    outputs.push(out);
+  }
+
+  let model = tf.model({
+    inputs: [X, s0, c0],
+    outputs: outputs
+  });
+
+  model.compile({ loss: "categoricalCrossentropy", optimizer: "adam" });
+  // return 1;
+  return model;
+}
+
+function initConstLayers(lstmUnits, inputLength, outputVocabSize) {
   // Layers shared across one time step
-  let static = {
-    repeator: tf.layers.repeatVector({ n: inputVocabSize }),
+  const static = {
+    repeator: tf.layers.repeatVector({ n: inputLength }),
     concatenator: tf.layers.concatenate({ axis: -1 }),
-    densor1: tf.layers.dense(10, { activation: "tanh" }),
-    densor2: tf.layers.dense(1, { activation: "relu" }),
-    activator: tf.layers.activation(softmax, { name: "attention_weights" }), // We are using a custom softmax(axis = 1) loaded in this notebook
+    densor1: tf.layers.dense({ units: 10, activation: "tanh" }),
+    densor2: tf.layers.dense({ units: 1, activation: "relu" }),
+    activator: tf.layers.activation({
+      activation: "softmax",
+      name: "attention_weights"
+    }), // We are using a custom softmax(axis = 1) loaded in this notebook
     dotor: tf.layers.dot({ axes: 1 })
   };
 
-  return model;
+  const postActivationLSTMCell = tf.layers.lstm({
+    units: lstmUnits,
+    returnState: true
+  });
+
+  const outputLayer = tf.layers.dense({
+    activation: "softmax",
+    units: outputVocabSize
+  });
+
+  return { static, postActivationLSTMCell, outputLayer };
 }
 
 /**
@@ -60,7 +123,7 @@ function createModel(
 function oneStepAttention(a, s_prev, static) {
   s_prev = static.repeator.apply(s_prev);
 
-  let concat = static.repeator.concatenator.apply([a, s_prev]);
+  let concat = static.concatenator.apply([a, s_prev]);
 
   let e = static.densor1.apply(concat);
 
@@ -74,5 +137,6 @@ function oneStepAttention(a, s_prev, static) {
 }
 
 module.exports = {
+  oneStepAttention,
   createModel
 };

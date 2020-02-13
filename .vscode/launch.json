@@ -7,7 +7,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug Luong",
+      "name": "Debug Main",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/index.js"
     },

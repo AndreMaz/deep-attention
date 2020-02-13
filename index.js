@@ -36,7 +36,7 @@ async function main() {
     testDateTuples
   } = generateDataSet(configs.dataset);
 
-  const createModel = modelFactory("luong");
+  const createModel = modelFactory("bahdanau");
   const model = createModel(
     dateFormat.INPUT_VOCAB.length,
     dateFormat.OUTPUT_VOCAB.length,
