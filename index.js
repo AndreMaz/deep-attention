@@ -46,7 +46,6 @@ async function main() {
   );
   model.summary();
 
-  /*
   // Train the model
   await model.fit([trainEncoderInput, trainDecoderInput], trainDecoderOutput, {
     epochs: configs.args.epochs,
@@ -55,7 +54,7 @@ async function main() {
     validationData: [[valEncoderInput, valDecoderInput], valDecoderOutput]
   });
 
-  
+  /*
   // Save the model.
   if (configs.args.savePath != null && configs.args.savePath.length) {
     if (!fs.existsSync(configs.args.savePath)) {

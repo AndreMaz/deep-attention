@@ -1,5 +1,6 @@
 const tf = require("@tensorflow/tfjs");
 const DecoderBahdanau = require("./decoder_v2");
+const GetLastTimestepLayer = require("./last-time-step-layer");
 
 function createModel(
   inputVocabSize,
@@ -33,6 +34,10 @@ function createModel(
     .lstm({ units: lstmUnits, returnSequences: true, name: "encoderLSTM" }) // `returnSequences` returns all the states. Not only the last one
     .apply(encoderEmbeddingOutput);
 
+  const encoderLastState = new GetLastTimestepLayer({
+    name: "encoderLastStateExtractor"
+  }).apply(encoderLSTMOutput);
+
   const decoderEmbeddingInput = tf.input({
     shape: [outputLength],
     name: "embeddingDecoderInput"
@@ -45,13 +50,28 @@ function createModel(
     embeddingDims: lstmUnits,
     lstmUnits: lstmUnits,
     batchSize: batchSize
-  }).apply([decoderEmbeddingInput, encoderLSTMOutput]);
+  }).apply([decoderEmbeddingInput, encoderLastState, encoderLSTMOutput]);
+
+  // Input is [null, 10, 64]
+  // Outputs is [null, 10, 13] outputVocabSize = 13
+  let outputGenerator = tf.layers
+    .timeDistributed({
+      layer: tf.layers.dense({
+        units: outputVocabSize,
+        activation: "softmax",
+        name: "timeDistributedSoftmax"
+      }) // Generate the probability of the output char
+    })
+    .apply(decoderLSTMOutput);
 
   const model = tf.model({
     inputs: [encoderEmbeddingInput, decoderEmbeddingInput],
-    outputs: decoderLSTMOutput
+    outputs: outputGenerator
   });
 
+  model.summary();
+
+  model.compile({ loss: "categoricalCrossentropy", optimizer: "adam" });
   return model;
 }
 

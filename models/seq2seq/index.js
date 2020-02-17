@@ -61,7 +61,7 @@ function createModel(
 
   // Input is [null, 10, 64]
   // Outputs is [null, 10, 13] outputVocabSize = 13
-  outputGenerator = tf.layers
+  let outputGenerator = tf.layers
     .timeDistributed({
       layer: tf.layers.dense({
         units: outputVocabSize,

@@ -46,7 +46,9 @@ class DecoderBahdanau extends tf.layers.Layer {
   }
 
   computeOutputShape(inputShape) {
-    return inputShape[0];
+    // console.log(inputShape);
+    // return inputShape[0];
+    return [128, 10, 32];
   }
 
   call(input) {
@@ -81,7 +83,7 @@ class DecoderBahdanau extends tf.layers.Layer {
 
         perStepOutputs.push(lastOutput);
 
-        currentInput.print();
+        // currentInput.print();
       }
 
       // console.log(u);
@@ -89,11 +91,9 @@ class DecoderBahdanau extends tf.layers.Layer {
       // const lstmOutput = this.LSTM.apply(decoderLSTMOutput);
 
       let o = tf.stack(perStepOutputs, 1);
+      // console.log(o.shape);
 
-      o.print();
-      console.log(o.shape);
-
-      return x;
+      return o;
     });
   }
 
