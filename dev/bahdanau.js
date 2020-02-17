@@ -1,7 +1,8 @@
 const tf = require("@tensorflow/tfjs-node");
 const dateFormat = require("../dataset/date_format");
 
-const { oneStepAttention } = require("../models/bahdanau-attention");
+const DecoderBahdanau = require("../models/bahdanau-attention/decoder_v2");
+const GetLastTimestepLayer = require("../models/bahdanau-attention/last-time-step-layer");
 
 const embeddingDims = 64;
 const lstmUnits = 64;
@@ -47,3 +48,28 @@ let encoderEmbeddingOutput = tf.layers
     maskZero: true
   })
   .apply(encodeEmbeddingInput);
+
+let encoderLSTMOutput = tf.layers
+  .lstm({ units: lstmUnits, returnSequences: true, name: "encoderLSTM" }) // `returnSequences` returns all the states. Not only the last one
+  .apply(encoderEmbeddingOutput);
+
+let lastEncoderState = new GetLastTimestepLayer({
+  name: "lastEncoderState"
+}).apply(encoderLSTMOutput);
+
+/*
+  const decoderEmbeddingInput = tf.input({
+  shape: [outputLength],
+  name: "embeddingDecoderInput"
+});
+*/
+
+let decoderLSTMOutput = new DecoderBahdanau({
+  name: "CustomLSTM",
+  outputLength: outputLength,
+  outputVocabSize: outputVocabSize,
+  embeddingDims: lstmUnits,
+  lstmUnits: lstmUnits,
+  batchSize: 2,
+  cell: tf.layers.lstmCell({ units: lstmUnits })
+}).apply([shiftedDecodeEmbeddingInput, lastEncoderState, encoderLSTMOutput]);

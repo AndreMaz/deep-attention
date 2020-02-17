@@ -24,6 +24,13 @@
       "name": "Debug Dev",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/dev/bahdanau.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Random",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/dev/random.js"
     }
   ]
 }

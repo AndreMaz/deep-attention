@@ -8,7 +8,7 @@ const AttentionBahdanau = require("./attention");
 /**
  * Bahdanau's Decoder
  */
-class DecoderBahdanau extends tf.layers.RNNCell {
+class DecoderBahdanau extends tf.layers.Layer {
   constructor(config) {
     super(config || {});
 
@@ -17,6 +17,9 @@ class DecoderBahdanau extends tf.layers.RNNCell {
     this.embeddingDims = config.embeddingDims;
     this.lstmUnits = config.lstmUnits;
     this.batchSize = config.batchSize;
+
+    this.cell = tf.layers.lstmCell({ units: this.lstmUnits });
+    this.cell.build([this.lstmUnits]);
 
     // Selects rows from embedding by `encoderInput` values
     this.embedding = tf.layers.embedding({
@@ -34,67 +37,70 @@ class DecoderBahdanau extends tf.layers.RNNCell {
 
     this.fc = tf.layers.dense({ units: this.outputVocabSize });
 
+    /*
     this.attention = new AttentionBahdanau({
       name: "attention",
       units: this.lstmUnits
     });
+    */
   }
 
   computeOutputShape(inputShape) {
-    return inputShape;
+    return inputShape[0];
   }
 
-  /**
-   * Bahdanau's decoder is fed by :
-   *
-   * LSTM_decoder = FN (y_i, s_(i-1), c_i)
-   *
-   * Target sentence words: y_i
-   * Decoder's hidden state: s_i
-   * Context vector: c_i
-   * Encoder's hidden state: h_i
-   *
-   * Context vector is computed by:
-   *
-   * context = FN(s_(i-1), h_i)
-   *
-   * @param {Tensor[]} input
-   * @returns
-   */
   call(input) {
     return tf.tidy(() => {
       /** @type {Tensor} Decoder's Input */
       let x = input[0];
+
       /** @type {Tensor} Decoder's Last Hidden State */
-      const hidden = input[1];
+      let initialStates = input[1];
+
       /** @type {Tensor} Encoder's hidden states */
       const enc_output = input[2];
 
-      // enc_output shape == (batch_size, max_length, hidden_size)
-      const { contextVector, attentionWeights } = this.attention.apply([
-        hidden,
-        enc_output
-      ]);
+      let embeddingOutput = this.embedding.apply(x);
 
-      // x shape after passing through embedding == (batch_size, 1, embedding_dim)
-      x = this.embedding.apply(x);
+      let perStepInputs = embeddingOutput.unstack(1);
+      let perStepOutputs = [];
+      const timeSteps = perStepInputs.length;
+      let lastOutput;
 
-      // x shape after concatenation == (batch_size, 1, embedding_dim + hidden_size)
-      x = tf.concat([tf.expandDims(contextVector, 1), x], -1);
+      let stateMinus1 = initialStates;
+      for (let t = 0; t < timeSteps; ++t) {
+        const currentInput = perStepInputs[t];
 
+        let stepOutputs = this.cell.call(
+          [currentInput, stateMinus1, stateMinus1],
+          {}
+        );
+
+        lastOutput = stepOutputs[0];
+        stateMinus1 = stepOutputs[1];
+
+        perStepOutputs.push(lastOutput);
+
+        currentInput.print();
+      }
+
+      // console.log(u);
       // passing the concatenated vector to the LSTM
-      const lstmOutput = this.LSTM.apply(x);
-      let output = lstmOutput[0];
-      let state = lstmOutput[1];
+      // const lstmOutput = this.LSTM.apply(decoderLSTMOutput);
 
-      // output shape == (batch_size * 1, hidden_size)
-      output = tf.reshape(output, [1, output.shape[2]]);
+      let o = tf.stack(perStepOutputs, 1);
 
-      // output shape == (batch_size, vocab)
-      let pred = this.fc.apply(output);
+      o.print();
+      console.log(o.shape);
 
-      return { pred, state, attentionWeights };
+      return x;
     });
+  }
+
+  stepFunction(inputs, states) {
+    const outputs = this.cell.call([inputs].concat(states), cellCallKwargs);
+    // Marshall the return value into output and new states.
+    return [outputs[0], outputs.slice(1)];
   }
 
   static get className() {
