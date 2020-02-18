@@ -29,17 +29,17 @@ class AttentionBahdanau extends tf.layers.Layer {
   call(input) {
     return tf.tidy(() => {
       /** @type {Tensor} Decoder's last hidden state */
-      const query = input[0];
+      const decodersPrevHidden = input[0];
       /** @type {Tensor} Encoder's hidden states */
-      const values = input[1];
+      const encoderOutput = input[1];
 
-      console.log(`Query Shape ${query.shape}`);
-      console.log(`Values Shape ${values.shape}`);
+      console.log(`Query Shape ${decodersPrevHidden.shape}`);
+      console.log(`Values Shape ${encoderOutput.shape}`);
 
       // hidden shape == (batch_size, hidden size)
       // hidden_with_time_axis shape == (batch_size, 1, hidden size)
       // we are doing this to perform addition to calculate the score
-      let hidden_with_time_axis = tf.expandDims(query, 1);
+      let hidden_with_time_axis = tf.expandDims(decodersPrevHidden, 1);
 
       console.log(`hidden_with_time_axis Shape ${hidden_with_time_axis.shape}`);
       // hidden_with_time_axis.print();
@@ -50,7 +50,10 @@ class AttentionBahdanau extends tf.layers.Layer {
       // v^t * tanh(W1 * decoder's_prev_state + W2 * encoder's_states)
       let score = this.V.apply(
         tf.tanh(
-          tf.add(this.W2.apply(hidden_with_time_axis), this.W1.apply(values))
+          tf.add(
+            this.W2.apply(hidden_with_time_axis),
+            this.W1.apply(encoderOutput)
+          )
         )
       );
 
@@ -66,12 +69,12 @@ class AttentionBahdanau extends tf.layers.Layer {
       attentionWeights = attentionWeights.reshape(scoreShape);
 
       console.log(`attention_weights Shape ${attentionWeights.shape}`);
-      console.log(`values Shape ${values.shape}`);
+      console.log(`values Shape ${encoderOutput.shape}`);
 
       // context_vector shape after sum == (batch_size, hidden_size)
       // context_vector = attention_weights * values;
       // context_vector = tf.reduce_sum(context_vector, (axis = 1));
-      let contextVector = tf.mul(attentionWeights, values);
+      let contextVector = tf.mul(attentionWeights, encoderOutput);
       contextVector = tf.sum(contextVector, 1);
 
       return { contextVector, attentionWeights };

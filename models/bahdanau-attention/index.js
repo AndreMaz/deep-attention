@@ -6,11 +6,10 @@ function createModel(
   inputVocabSize,
   outputVocabSize,
   inputLength,
-  outputLength,
-  alignmentType = "dot"
+  outputLength
 ) {
   const embeddingDims = 64;
-  const lstmUnits = 32;
+  const lstmUnits = 64;
   const batchSize = 32;
 
   const encoderEmbeddingInput = tf.input({

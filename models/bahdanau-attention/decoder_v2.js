@@ -18,7 +18,9 @@ class DecoderBahdanau extends tf.layers.Layer {
     this.lstmUnits = config.lstmUnits;
     this.batchSize = config.batchSize;
 
-    this.cell = tf.layers.lstmCell({ units: this.lstmUnits });
+    this.cell = tf.layers.lstmCell({
+      units: this.lstmUnits
+    });
     this.cell.build([this.lstmUnits]);
 
     // Selects rows from embedding by `encoderInput` values
@@ -29,6 +31,7 @@ class DecoderBahdanau extends tf.layers.Layer {
       maskZero: true
     });
 
+    /*
     this.LSTM = tf.layers.lstm({
       units: this.lstmUnits,
       returnSequences: true,
@@ -36,19 +39,18 @@ class DecoderBahdanau extends tf.layers.Layer {
     });
 
     this.fc = tf.layers.dense({ units: this.outputVocabSize });
+    */
 
-    /*
     this.attention = new AttentionBahdanau({
       name: "attention",
-      units: this.lstmUnits
+      units: this.embeddingDims
     });
-    */
   }
 
   computeOutputShape(inputShape) {
-    // console.log(inputShape);
-    // return inputShape[0];
-    return [128, 10, 32];
+    let outputShape = inputShape[0];
+
+    return [...outputShape, this.lstmUnits];
   }
 
   call(input) {
@@ -57,50 +59,63 @@ class DecoderBahdanau extends tf.layers.Layer {
       let x = input[0];
 
       /** @type {Tensor} Decoder's Last Hidden State */
-      let initialStates = input[1];
+      let decodersPrevHidden = input[1];
 
       /** @type {Tensor} Encoder's hidden states */
-      const enc_output = input[2];
+      const encoderOutput = input[2];
+
+      /*
+      const { contextVector, attentionWeights } = this.attention.apply([
+        decodersPrevHidden,
+        encoderOutput
+      ]);
 
       let embeddingOutput = this.embedding.apply(x);
 
-      let perStepInputs = embeddingOutput.unstack(1);
+      x = tf.concat([tf.expandDims(contextVector, 1), x], -1);
+      */
+
+      let perStepInputs = x.unstack(1);
       let perStepOutputs = [];
       const timeSteps = perStepInputs.length;
       let lastOutput;
 
-      let stateMinus1 = initialStates;
-      for (let t = 0; t < timeSteps; ++t) {
-        const currentInput = perStepInputs[t];
+      let hMinus1 = decodersPrevHidden;
+      let cMinus1 = decodersPrevHidden;
 
-        let stepOutputs = this.cell.call(
-          [currentInput, stateMinus1, stateMinus1],
-          {}
-        );
+      for (let t = 0; t < timeSteps; ++t) {
+        let currentInput = perStepInputs[t];
+
+        /*
+        const { contextVector, attentionWeights } = this.attention.apply([
+          stateMinus1,
+          encoderOutput
+        ]);*/
+
+        currentInput = this.embedding.apply(currentInput);
+
+        /*currentInput = tf.concat(
+          [tf.expandDims(contextVector, 1), currentInput],
+          -1
+        );*/
+        // currentInput = tf.concat([contextVector, currentInput], -1);
+
+        let stepOutputs = this.cell.call([currentInput, hMinus1, cMinus1], {});
 
         lastOutput = stepOutputs[0];
-        stateMinus1 = stepOutputs[1];
+
+        hMinus1 = stepOutputs[1];
+        cMinus1 = stepOutputs[2];
 
         perStepOutputs.push(lastOutput);
 
         // currentInput.print();
       }
 
-      // console.log(u);
-      // passing the concatenated vector to the LSTM
-      // const lstmOutput = this.LSTM.apply(decoderLSTMOutput);
+      let output = tf.stack(perStepOutputs, 1);
 
-      let o = tf.stack(perStepOutputs, 1);
-      // console.log(o.shape);
-
-      return o;
+      return output;
     });
-  }
-
-  stepFunction(inputs, states) {
-    const outputs = this.cell.call([inputs].concat(states), cellCallKwargs);
-    // Marshall the return value into output and new states.
-    return [outputs[0], outputs.slice(1)];
   }
 
   static get className() {
